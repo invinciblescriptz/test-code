@@ -1963,7 +1963,7 @@ local ancientJungleRockSwitch = folder:AddSwitch("Farm Ancient Jungle Rock", fun
     end
 end)
 
-local folder = mainTab:AddFolder("Rock Farming (mobile)")
+local mobileFolder = mainTab:AddFolder("Rock Farming (mobile)")
  
 local function gettool()
     for i, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
@@ -1975,7 +1975,7 @@ local function gettool()
     game:GetService("Players").LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
 end
  
-local tinyIslandRockSwitch = folder:AddSwitch("Farm Tiny Island Rock", function(bool)
+local tinyIslandRockSwitch = mobileFolder:AddSwitch("Farm Tiny Island Rock", function(bool)
     selectrock = "Tiny Island Rock"
     getgenv().autoFarm = bool
  
@@ -2002,7 +2002,7 @@ local tinyIslandRockSwitch = folder:AddSwitch("Farm Tiny Island Rock", function(
     end
 end)
  
-local starterIslandRockSwitch = folder:AddSwitch("Farm Starter Island Rock", function(bool)
+local starterIslandRockSwitch = mobileFolder:AddSwitch("Farm Starter Island Rock", function(bool)
     selectrock = "Starter Island Rock"
     getgenv().autoFarm = bool
  
@@ -2029,7 +2029,7 @@ local starterIslandRockSwitch = folder:AddSwitch("Farm Starter Island Rock", fun
     end
 end)
  
-local legendBeachRockSwitch = folder:AddSwitch("Farm Legend Beach Rock", function(bool)
+local legendBeachRockSwitch = mobileFolder:AddSwitch("Farm Legend Beach Rock", function(bool)
     selectrock = "Legend Beach Rock"
     getgenv().autoFarm = bool
  
@@ -2056,7 +2056,7 @@ local legendBeachRockSwitch = folder:AddSwitch("Farm Legend Beach Rock", functio
     end
 end)
  
-local frostGymRockSwitch = folder:AddSwitch("Farm Frost Gym Rock", function(bool)
+local frostGymRockSwitch = mobileFolder:AddSwitch("Farm Frost Gym Rock", function(bool)
     selectrock = "Frost Gym Rock"
     getgenv().autoFarm = bool
  
@@ -2083,7 +2083,7 @@ local frostGymRockSwitch = folder:AddSwitch("Farm Frost Gym Rock", function(bool
     end
 end)
  
-local mythicalGymRockSwitch = folder:AddSwitch("Farm Mythical Gym Rock", function(bool)
+local mythicalGymRockSwitch = mobileFolder:AddSwitch("Farm Mythical Gym Rock", function(bool)
     selectrock = "Mythical Gym Rock"
     getgenv().autoFarm = bool
  
@@ -2110,7 +2110,7 @@ local mythicalGymRockSwitch = folder:AddSwitch("Farm Mythical Gym Rock", functio
     end
 end)
  
-local eternalGymRockSwitch = folder:AddSwitch("Farm Eternal Gym Rock", function(bool)
+local eternalGymRockSwitch = mobileFolder:AddSwitch("Farm Eternal Gym Rock", function(bool)
     selectrock = "Eternal Gym Rock"
     getgenv().autoFarm = bool
  
@@ -2137,7 +2137,7 @@ local eternalGymRockSwitch = folder:AddSwitch("Farm Eternal Gym Rock", function(
     end
 end)
  
-local legendGymRockSwitch = folder:AddSwitch("Farm Legend Gym Rock", function(bool)
+local legendGymRockSwitch = mobileFolder:AddSwitch("Farm Legend Gym Rock", function(bool)
     selectrock = "Legend Gym Rock"
     getgenv().autoFarm = bool
  
@@ -2164,7 +2164,7 @@ local legendGymRockSwitch = folder:AddSwitch("Farm Legend Gym Rock", function(bo
     end
 end)
  
-local muscleKingGymRockSwitch = folder:AddSwitch("Farm Muscle King Gym Rock", function(bool)
+local muscleKingGymRockSwitch = mobileFolder:AddSwitch("Farm Muscle King Gym Rock", function(bool)
     selectrock = "Muscle King Gym Rock"
     getgenv().autoFarm = bool
  
@@ -2191,7 +2191,7 @@ local muscleKingGymRockSwitch = folder:AddSwitch("Farm Muscle King Gym Rock", fu
     end
 end)
  
-local ancientJungleRockSwitch = folder:AddSwitch("Farm Ancient Jungle Rock", function(bool)
+local ancientJungleRockSwitch = mobileFolder:AddSwitch("Farm Ancient Jungle Rock", function(bool)
     selectrock = "Ancient Jungle Rock"
     getgenv().autoFarm = bool
  
