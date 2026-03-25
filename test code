@@ -880,3 +880,4 @@ local ancientJungleRockSwitch = folder:AddSwitch("Farm Ancient Jungle Rock", fun
         end)
     end
 end)
+-- end of the fixed script
