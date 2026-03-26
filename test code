@@ -128,7 +128,7 @@ controlsY = controlsY + 50
 local bigHitboxBtn, getBigHitboxState = createToggleButton("Auto Big Hitbox", controlsY, true)
 
 -- Assign button functionalities
-local gymCFrame = CFrame.new(-8625.93262, 17.2325287, -5730.47217, 0.765763462, -1.84813775e-09, 0.643122315, -1.32089262e-09, 1, 4.44647785e-09, -0.643122315, -4.25444568e-09, 0.765763462)
+local gymCFrame = CFrame.new(-8888.77246, 509.235229, -5754.04688, 0.398066431, 6.7031003e-08, -0.91735661, -5.17940215e-08, 1, 5.05948741e-08, 0.91735661, 2.73734653e-08, 0.398066431)
 
 tpGymBtn.MouseButton1Click:Connect(function()
     if gymCFrame then
