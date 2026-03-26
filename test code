@@ -1,10 +1,10 @@
---// UI + Features Script //--
+--// Fully Fixed and Loadable Script with UI and Features //--
 
 local player = game.Players.LocalPlayer
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-gui.Name = "InvinciblePrivateKillingUI"
+local Gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+Gui.Name = "InvinciblePrivateKillingUI"
 
-local frame = Instance.new("Frame", gui)
+local frame = Instance.new("Frame", Gui)
 frame.Size = UDim2.new(0, 650, 0, 500)
 frame.Position = UDim2.new(0.5, -325, 0.5, -250)
 frame.BackgroundColor3 = Color3.fromRGB(0, 10, 0)
@@ -18,12 +18,38 @@ title.Text = "Invincible Private Killing"
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 20
 
-local yOffset = 60
+local dragging = false
+local dragStart, startPos
 
-local function createButton(text, yPos)
+-- Make the GUI draggable
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+end)
+
+title.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+local yPos = 60
+
+local function createButton(text, y)
     local btn = Instance.new("TextButton", frame)
     btn.Size = UDim2.new(0, 300, 0, 40)
-    btn.Position = UDim2.new(0, 20, 0, yPos)
+    btn.Position = UDim2.new(0, 20, 0, y)
     btn.Text = text
     btn.BackgroundColor3 = Color3.fromRGB(0, 50, 0)
     btn.TextColor3 = Color3.new(1, 1, 1)
@@ -32,20 +58,45 @@ local function createButton(text, yPos)
     return btn
 end
 
-local function createInput(placeholder, yPos)
-    local input = Instance.new("TextBox", frame)
-    input.Size = UDim2.new(0, 250, 0, 40)
-    input.Position = UDim2.new(0, 350, 0, yPos)
-    input.PlaceholderText = placeholder
-    input.Text = ""
-    input.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    input.TextColor3 = Color3.new(1, 1, 1)
-    input.Font = Enum.Font.SourceSans
-    input.TextSize = 14
-    return input
+local function createToggleButton(text, y, initialState)
+    local btn = createButton(text, y)
+    local state = initialState
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = text:gsub(": .+$", ": " .. (state and "ON" or "OFF"))
+        return state
+    end)
+    -- Initialize text
+    btn.Text = text:gsub(": .+$", ": " .. (initialState and "ON" or "OFF"))
+    return btn, function() return state end
 end
 
--- Initialize feature toggle variables
+local function createSlider(text, y, min, max, initial)
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(0, 150, 0, 20)
+    label.Position = UDim2.new(0, 20, 0, y)
+    label.Text = text
+    label.TextColor3 = Color3.new(1,1,1)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 14
+
+    local sliderBtn = createButton(initial, y + 20)
+    local values = {min, max}
+    local currentIdx = 1
+    sliderBtn.MouseButton1Click:Connect(function()
+        -- cycle through preset values
+        local options = {min, max, math.floor((min+max)/2)}
+        currentIdx = currentIdx + 1
+        if currentIdx > #options then currentIdx = 1 end
+        sliderBtn.Text = tostring(options[currentIdx])
+        return options[currentIdx]
+    end)
+    sliderBtn.Text = tostring(initial)
+    return label, function() return tonumber(sliderBtn.Text) end
+end
+
+-- Initialize variables for features
 local AutoFarmEnabled = true
 local AutoServerHopEnabled = true
 local ServerHopInterval = 30
@@ -55,140 +106,80 @@ local AutoLockPositionEnabled = true
 local AutoSetNightTimeEnabled = true
 local AutoBigHitboxEnabled = true
 
--- Create toggles/buttons/inputs
-local function initUI()
-    local yPos = 60
+-- Create UI controls
+local controlsY = yPos
 
-    -- Auto Farm Toggle
-    local autoFarmBtn = createButton("Auto Farm: ON", yPos)
-    local autoFarmState = true
-    autoFarmBtn.MouseButton1Click:Connect(function()
-        autoFarmState = not autoFarmState
-        autoFarmBtn.Text = "Auto Farm: " .. (autoFarmState and "ON" or "OFF")
-        AutoFarmEnabled = autoFarmState
-    end)
+local autoFarmBtn, getAutoFarmState = createToggleButton("Auto Farm", controlsY, true)
+controlsY = controlsY + 50
+local serverHopBtn, getServerHopState = createToggleButton("Auto Server Hop", controlsY, true)
+controlsY = controlsY + 50
+local hopIntervalLabel, getHopInterval = createSlider("Hop Interval (s)", controlsY, 5, 120, 30)
+controlsY = controlsY + 50
+local killWeakerBtn, getKillWeakerState = createToggleButton("Kill Only Weaker", controlsY, true)
+controlsY = controlsY + 50
+local tpGymBtn = createButton("TP Muscle King Gym", controlsY)
+controlsY = controlsY + 50
+local setNightBtn = createButton("Set Night Time", controlsY)
+controlsY = controlsY + 50
+local lockPosBtn, getLockPosState = createToggleButton("Auto Lock Position", controlsY, true)
+controlsY = controlsY + 50
+local nightToggleBtn, getNightToggleState = createToggleButton("Auto Set Night Time", controlsY, true)
+controlsY = controlsY + 50
+local bigHitboxBtn, getBigHitboxState = createToggleButton("Auto Big Hitbox", controlsY, true)
 
-    yPos = yPos + 50
-
-    -- Auto Server Hop Toggle
-    local serverHopBtn = createButton("Auto Server Hop: ON", yPos)
-    local autoServerHop = true
-    serverHopBtn.MouseButton1Click:Connect(function()
-        autoServerHop = not autoServerHop
-        serverHopBtn.Text = "Auto Server Hop: " .. (autoServerHop and "ON" or "OFF")
-        AutoServerHopEnabled = autoServerHop
-    end)
-
-    yPos = yPos + 50
-
-    -- Hop Interval Slider (simulate with cycle)
-    local hopIntervalLabel = createButton("Hop Interval (s): 30", yPos)
-    local options = {5,10,15,20,30,60,120}
-    local currentIndex = table.find(options, ServerHopInterval) or 5
-    hopIntervalLabel.MouseButton1Click:Connect(function()
-        currentIndex = currentIndex + 1
-        if currentIndex > #options then currentIndex = 1 end
-        ServerHopInterval = options[currentIndex]
-        hopIntervalLabel.Text = "Hop Interval (s): " .. ServerHopInterval
-    })
-
-    yPos = yPos + 50
-
-    -- Kill Only Weaker Toggle
-    local killWeakerBtn = createButton("Kill Only Weaker: ON", yPos)
-    local KillOnlyWeaker = true
-    killWeakerBtn.MouseButton1Click:Connect(function()
-        KillOnlyWeaker = not KillOnlyWeaker
-        killWeakerBtn.Text = "Kill Only Weaker: " .. (KillOnlyWeaker and "ON" or "OFF")
-        KillOnlyWeakerEnabled = KillOnlyWeaker
-    end)
-
-    yPos = yPos + 50
-
-    -- TP Muscle King Gym Button
-    local tpGymBtn = createButton("TP Muscle King Gym", yPos)
-    tpGymBtn.MouseButton1Click:Connect(function()
+-- Assign button functionalities
+tpGymBtn.MouseButton1Click:Connect(function()
+    if gymCFrame then
         local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then hrp.CFrame = gymCFrame end
-    end)
+    end
+end)
 
-    yPos = yPos + 50
+setNightBtn.MouseButton1Click:Connect(setNightTime)
 
-    -- Set Night Time Button
-    local nightBtn = createButton("Set Night Time", yPos)
-    nightBtn.MouseButton1Click:Connect(setNightTime)
+lockPosBtn.MouseButton1Click:Connect(function()
+    local newState = not getLockPosState()
+    if newState then setupPositionLock() else clearPositionLock() end
+end)
 
-    yPos = yPos + 50
+nightToggleBtn.MouseButton1Click:Connect(function()
+    local newState = not getNightToggleState()
+    -- nothing special needed here, just toggle
+end)
 
-    -- Auto Lock Position Toggle
-    local lockPosBtn = createButton("Auto Lock Position: ON", yPos)
-    local AutoLockPos = true
-    lockPosBtn.MouseButton1Click:Connect(function()
-        AutoLockPos = not AutoLockPos
-        lockPosBtn.Text = "Auto Lock Position: " .. (AutoLockPos and "ON" or "OFF")
-        AutoLockPositionEnabled = AutoLockPos
-        if AutoLockPos then setupPositionLock() else clearPositionLock() end
-    end)
+bigHitboxBtn.MouseButton1Click:Connect(function()
+    local newState = not getBigHitboxState()
+    if newState then setBigHitbox() else resetHitbox() end
+end)
 
-    yPos = yPos + 50
-
-    -- Auto Set Night Time Toggle
-    local nightToggleBtn = createButton("Auto Set Night Time: ON", yPos)
-    local AutoNight = true
-    nightToggleBtn.MouseButton1Click:Connect(function()
-        AutoNight = not AutoNight
-        nightToggleBtn.Text = "Auto Set Night Time: " .. (AutoNight and "ON" or "OFF")
-        AutoSetNightTimeEnabled = AutoNight
-    end)
-
-    yPos = yPos + 50
-
-    -- Auto Big Hitbox Toggle
-    local bigHitboxBtn = createButton("Auto Big Hitbox: ON", yPos)
-    local AutoBigHitbox = true
-    bigHitboxBtn.MouseButton1Click:Connect(function()
-        AutoBigHitbox = not AutoBigHitbox
-        bigHitboxBtn.Text = "Auto Big Hitbox: " .. (AutoBigHitbox and "ON" or "OFF")
-        AutoBigHitboxEnabled = AutoBigHitbox
-        if AutoBigHitbox then setBigHitbox() else resetHitbox() end
-    end)
-end
-
-initUI()
-
---// Existing game logic and functions //--
-
-local Players = game:GetService("Players")
+-- Load services
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 local VirtualUser = game:GetService("VirtualUser")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
-if getgenv().AutoKillLoaded then return end
-getgenv().AutoKillLoaded = true
+local gymCFrame = CFrame.new(-8625.93262, 17.2325287, -5730.47217, 0.765763462, -1.84813775e-09, 0.643122315, -1.32089262e-09, 1, 4.44647785e-09, -0.643122315, -4.25444568e-09, 0.765763462)
 
-local LastServerHop = os.clock()
-
--- Position Lock setup
+-- Variables for position lock
 local positionLockAlignPos, positionLockAttachment
 
-local function clearPositionLock()
+function clearPositionLock()
     if positionLockAlignPos then positionLockAlignPos:Destroy() positionLockAlignPos = nil end
     if positionLockAttachment then positionLockAttachment:Destroy() positionLockAttachment = nil end
 end
 
-local function setupPositionLock()
+function setupPositionLock()
     clearPositionLock()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
     pcall(function() hrp:SetNetworkOwner(LocalPlayer) end)
     positionLockAttachment = Instance.new("Attachment", hrp)
     positionLockAlignPos = Instance.new("AlignPosition")
     positionLockAlignPos.Attachment0 = positionLockAttachment
-    positionLockAlignPos.Position = gymPos
+    positionLockAlignPos.Position = gymCFrame.Position
     positionLockAlignPos.MaxForce = 1e7
     positionLockAlignPos.MaxVelocity = math.huge
     positionLockAlignPos.Responsiveness = 200
@@ -196,7 +187,7 @@ local function setupPositionLock()
     positionLockAlignPos.Parent = hrp
 end
 
-local function setNightTime()
+function setNightTime()
     Lighting.ClockTime = 0
     Lighting.Brightness = 0.5
     Lighting.Ambient = Color3.fromRGB(50,50,70)
@@ -205,18 +196,17 @@ end
 
 local TARGET_HITBOX_SIZE = Vector3.new(25, 25, 25)
 
-local function setBigHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+function setBigHitbox()
+    local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if hrp then hrp.Size = TARGET_HITBOX_SIZE end
 end
 
-local function resetHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+function resetHitbox()
+    local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if hrp then hrp.Size = Vector3.new(2, 2, 1) end
 end
 
+-- Stats / Kill logic
 local function GetPlayerStatValue(plr, statNames)
     if not plr then return nil end
     if type(statNames) == "string" then statNames = {statNames} end
@@ -293,7 +283,8 @@ LocalPlayer.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Server hop function
+local LastServerHop = os.clock()
+
 local function ServerHop()
     local placeId = game.PlaceId
     local myJobId = game.JobId
@@ -332,30 +323,29 @@ end
 
 -- Main loop
 RunService.Heartbeat:Connect(function()
-    -- Server Hop
-    if AutoServerHopEnabled and (os.clock() - LastServerHop) >= ServerHopInterval then
+    -- Server hop
+    if getServerHopState() and (os.clock() - LastServerHop) >= getHopInterval() then
         LastServerHop = os.clock()
         task.spawn(ServerHop)
     end
 
     -- Night refresh
-    if AutoSetNightTimeEnabled and math.floor(os.clock()) % 5 == 0 then
+    if getNightToggleState() and math.floor(os.clock()) % 5 == 0 then
         setNightTime()
     end
 
     -- Hitbox refresh
-    if AutoBigHitboxEnabled and math.floor(os.clock() * 10) % 3 == 0 then
+    if getBigHitboxState() and math.floor(os.clock() * 10) % 3 == 0 then
         setBigHitbox()
     end
 
-    -- Auto lock position
-    if AutoLockPositionEnabled and HRP then
+    -- Position lock
+    if getLockPosState() and HRP then
         if positionLockAlignPos then
-            positionLockAlignPos.Position = gymPos
+            positionLockAlignPos.Position = gymCFrame.Position
         end
-        -- fallback force reposition
         if math.floor(os.clock() * 20) % 3 == 0 then
-            HRP.CFrame = CFrame.new(gymPos) * HRP.CFrame.Rotation
+            HRP.CFrame = CFrame.new(gymCFrame.Position) * HRP.CFrame.Rotation
         end
     end
 
@@ -372,7 +362,7 @@ RunService.Heartbeat:Connect(function()
     if (os.clock() - LastAttack) < 0.08 then return end
     LastAttack = os.clock()
 
-    -- Attack
+    -- attack
     local attackTime = Punch:FindFirstChild("attackTime")
     if attackTime then attackTime.Value = 0 end
     Punch:Activate()
@@ -396,75 +386,19 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("Invincible Kill Farm Loaded! | Night: " .. (AutoSetNightTimeEnabled and "ON" or "OFF") ..
-    " | Big Hitbox: " .. (AutoBigHitboxEnabled and "ON" or "OFF") ..
-    " | Hop Interval: " .. ServerHopInterval .. "s")
+print("Invincible Kill Farm Loaded! Night: " .. (getNightToggleState() and "ON" or "OFF") ..
+    " | Big Hitbox: " .. (getBigHitboxState() and "ON" or "OFF") ..
+    " | Hop Interval: " .. getHopInterval() .. "s")
 
--- UI controls already set up, now define the functions used in buttons
-
-local gymCFrame = CFrame.new(-8625.93262, 17.2325287, -5730.47217, 0.765763462, -1.84813775e-09, 0.643122315, -1.32089262e-09, 1, 4.44647785e-09, -0.643122315, -4.25444568e-09, 0.765763462)
-
-function setNightTime()
-    Lighting.ClockTime = 0
-    Lighting.Brightness = 0.5
-    Lighting.Ambient = Color3.fromRGB(50,50,70)
-    Lighting.OutdoorAmbient = Color3.fromRGB(30,30,50)
+-- Run the feature toggles
+while true do
+    wait(1)
+    -- toggle features based on UI state
+    AutoFarmEnabled = getAutoFarmState()
+    AutoServerHopEnabled = getServerHopState()
+    KillOnlyWeakerEnabled = getKillWeakerState()
+    AutoLockPositionEnabled = getLockPosState()
+    AutoSetNightTimeEnabled = getNightToggleState()
+    AutoBigHitboxEnabled = getBigHitboxState()
+    ServerHopInterval = getHopInterval()
 end
-
-function setupPositionLock()
-    clearPositionLock()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
-    pcall(function() hrp:SetNetworkOwner(LocalPlayer) end)
-    positionLockAttachment = Instance.new("Attachment", hrp)
-    positionLockAlignPos = Instance.new("AlignPosition")
-    positionLockAlignPos.Attachment0 = positionLockAttachment
-    positionLockAlignPos.Position = gymPos
-    positionLockAlignPos.MaxForce = 1e7
-    positionLockAlignPos.MaxVelocity = math.huge
-    positionLockAlignPos.Responsiveness = 200
-    positionLockAlignPos.RigidityEnabled = true
-    positionLockAlignPos.Parent = hrp
-end
-
-function clearPositionLock()
-    if positionLockAlignPos then positionLockAlignPos:Destroy() positionLockAlignPos = nil end
-    if positionLockAttachment then positionLockAttachment:Destroy() positionLockAttachment = nil end
-end
-
-function setBigHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then hrp.Size = TARGET_HITBOX_SIZE end
-end
-
-function resetHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then hrp.Size = Vector3.new(2, 2, 1) end
-end
-
--- Make the GUI draggable
-title.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-    end
-end)
-
-title.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-game:GetService("UserInputService").InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
