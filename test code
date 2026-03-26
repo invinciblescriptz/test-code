@@ -67,6 +67,8 @@ getgenv().AutoSpinWheel = false
 getgenv().FastPackFarm = false
 getgenv().AutoTPMuscleKing = false
 getgenv().PositionLocked = false
+
+-- Helper functions
 local function getHRP()
     local char = LP.Character
     return char and char:FindFirstChild("HumanoidRootPart")
@@ -143,7 +145,8 @@ local function toggleAntiAFK(enabled)
     end
 end
 
--- Rock Farm Loop
+-- ==================== -- Rock Farming (original + mobile) ====================
+-- Original Rock Farming Loop
 task.spawn(function()
     while getgenv().NexusRunning do
         if getgenv().rockFarmActive and getgenv().selectedRockDurability > 0 then
@@ -159,14 +162,14 @@ task.spawn(function()
                 safeEquip("Punch")
                 local folder = WS:FindFirstChild("machinesFolder")
                 if folder then
-                    for _, obj in ipairs(folder:GetDescendants()) do
-                        if obj.Name == "neededDurability" and obj:IsA("IntValue") and obj.Value == getgenv().selectedRockDurability then
-                            local rock = obj.Parent:FindFirstChild("Rock")
+                    for _, v in pairs(folder:GetDescendants()) do
+                        if v.Name == "neededDurability" and v:IsA("IntValue") and v.Value == getgenv().selectedRockDurability then
+                            local rock = v.Parent:FindFirstChild("Rock")
                             if rock and rock:IsA("BasePart") then
                                 local hrp = getHRP()
                                 if hrp then
                                     firetouchinterest(rock, hrp, 0)
-                                    task.wait(0.025)
+                                    task.wait(0.03)
                                     firetouchinterest(rock, hrp, 1)
                                     muscleEvent:FireServer("punch", "leftHand")
                                     muscleEvent:FireServer("punch", "rightHand")
@@ -177,108 +180,11 @@ task.spawn(function()
                 end
             end)
         end
-        task.wait(0.22)
+        task.wait(0.18)
     end
 end)
 
--- ==================== -- Main Controls
-local toolsFolder = tabMain:AddFolder("Tools")
-local rockFarmFolder = tabMain:AddFolder("Rock Farm")
-
--- Toggle for common auto features
-toolsFolder:AddSwitch("Auto Pushups", function(s)
-    states.AutoPushups = s
-    if s then startAutoRep("Pushups", "AutoPushups") end
-end)
-
-toolsFolder:AddSwitch("Auto Weight", function(s)
-    states.AutoWeight = s
-    if s then startAutoRep("Weight", "AutoWeight") end
-end)
-
-toolsFolder:AddSwitch("Auto Handstands", function(s)
-    states.AutoHandstands = s
-    if s then startAutoRep("Handstands", "AutoHandstands") end
-end)
-
-toolsFolder:AddSwitch("Auto Punch (Fast)", function(s)
-    states.FastPunch = s
-    if s then
-        task.spawn(function()
-            while states.FastPunch and getgenv().NexusRunning do
-                pcall(function()
-                    if muscleEvent then
-                        muscleEvent:FireServer("punch", "rightHand")
-                        muscleEvent:FireServer("punch", "leftHand")
-                    end
-                    local char = LP.Character
-                    if char then
-                        local punch = char:FindFirstChild("Punch") or LP.Backpack:FindFirstChild("Punch")
-                        if punch and punch.Parent ~= char then
-                            char.Humanoid:EquipTool(punch)
-                        end
-                        if punch and punch.Parent == char then
-                            local atk = punch:FindFirstChild("attackTime")
-                            if atk and atk:IsA("NumberValue") then atk.Value = 0.01 end
-                            punch:Activate()
-                        end
-                    end
-                end)
-                task.wait(0.085)
-            end
-        end)
-    end
-end)
-
-toolsFolder:AddSwitch("Infinite Jump", function(s)
-    toggleInfiniteJump(s)
-end)
-
-toolsFolder:AddSwitch("Anti-AFK", function(s)
-    toggleAntiAFK(s)
-end)
-
--- Unlock Gamepass
-tabInfo:AddButton("Unlock Auto-Lift Gamepass", function()
-    pcall(function()
-        local ids = RS:FindFirstChild("gamepassIds")
-        if not ids then warn("[INV] gamepassIds not found") return end
-        local owned = LP:FindFirstChild("ownedGamepasses")
-        if not owned then
-            owned = Instance.new("Folder", LP)
-            owned.Name = "ownedGamepasses"
-        end
-        for _, v in ipairs(ids:GetChildren()) do
-            if v:IsA("IntValue") and not owned:FindFirstChild(v.Name) then
-                local nv = Instance.new("IntValue", owned)
-                nv.Name = v.Name
-                nv.Value = v.Value
-            end
-        end
-    end)
-end)
-
--- Teleport Buttons
-local teleportLocations = {
-    {"Spawn / Safe", Vector3.new(-6, 5, -196)},
-    {"Secret Area", Vector3.new(1947, 2, 6191)},
-    {"Tiny Area", Vector3.new(-39, 6, 1886)},
-    {"Frozen", Vector3.new(-2623, 6, -409)},
-    {"Mythical", Vector3.new(2251, 6, 1073)},
-    {"Inferno", Vector3.new(-6759, 6, -1285)},
-    {"Legend", Vector3.new(4603, 990, -3898)},
-    {"Muscle King", Vector3.new(-8626, 16, -5730)},
-    {"Jungle", Vector3.new(-8642, 6, 2381)},
-    {"Lava Brawl", Vector3.new(4471, 119, -8836)},
-    {"Desert Brawl", Vector3.new(960, 17, -7398)},
-    {"Beach Brawl", Vector3.new(-1849, 20, -6335)},
-}
-
-for _, v in ipairs(teleportLocations) do
-    tabTeleport:AddButton(v[1], function() tpTo(v[2]) end)
-end
-
--- Rock Farm Controls in the Folder (mobile)
+-- Rock Farming (mobile) folder controls
 local function setRockFarm(durability, enable)
     if enable then
         getgenv().selectedRockDurability = durability
@@ -308,13 +214,58 @@ for _, option in ipairs(rockFarmOptions) do
     tabRockFarmMobile:AddSwitch(name, function(s) setRockFarm(dur, s) end)
 end
 
--- Stop all Rock Farming Button
+-- Stop all Rock Farming button in mobile folder
 tabRockFarmMobile:AddButton("Stop All Rock Farming", function()
     getgenv().rockFarmActive = false
     getgenv().selectedRockDurability = 0
 end)
 
--- ==================== -- Rebirth Tab Controls (including OP Farm)
+-- Additional Rock Farming Loop Fix
+task.spawn(function()
+    while getgenv().NexusRunning do
+        if getgenv().rockFarmActive and getgenv().selectedRockDurability > 0 then
+            pcall(function()
+                local char = LP.Character
+                local h = char and char:FindFirstChildOfClass("Humanoid")
+                if not h or h.Health <= 0 then task.wait(1.4) return end
+                local dur = LP:FindFirstChild("Durability")
+                if not dur or dur.Value < getgenv().selectedRockDurability then
+                    task.wait(0.6)
+                    return
+                end
+                safeEquip("Punch")
+                local folder = WS:FindFirstChild("machinesFolder")
+                if folder then
+                    for _, v in pairs(folder:GetDescendants()) do
+                        if v.Name == "neededDurability" and v:IsA("IntValue") and v.Value == getgenv().selectedRockDurability then
+                            local rock = v.Parent:FindFirstChild("Rock")
+                            if rock and rock:IsA("BasePart") then
+                                local hrp = getHRP()
+                                if hrp then
+                                    if char:FindFirstChild("RightHand") then
+                                        firetouchinterest(rock, hrp, 0)
+                                        task.wait(0.03)
+                                        firetouchinterest(rock, hrp, 1)
+                                    end
+                                    if char:FindFirstChild("LeftHand") then
+                                        firetouchinterest(rock, hrp, 0)
+                                        task.wait(0.03)
+                                        firetouchinterest(rock, hrp, 1)
+                                    end
+                                    muscleEvent:FireServer("punch", "leftHand")
+                                    muscleEvent:FireServer("punch", "rightHand")
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+        task.wait(0.18)
+    end
+end)
+
+-- ==================== -- Rebirth Controls (including OP Farm)
 local autoRebirth = false
 local autoSize = false
 
@@ -348,7 +299,7 @@ tabRebirth:AddSwitch("Auto Size 1", function(val)
     end
 end)
 
--- Auto TP to Muscle King
+-- Auto TP → Muscle King
 tabRebirth:AddSwitch("Auto TP → Muscle King", function(v)
     getgenv().AutoTPMuscleKing = v
     if v then
@@ -427,3 +378,5 @@ tabRebirth:AddSwitch("Fast Rebirth Pack Farm", function(v)
         end)
     end
 end)
+
+-- ==================== -- End of Rebirth Controls ====================
