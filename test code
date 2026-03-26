@@ -5,7 +5,7 @@ local Gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 Gui.Name = "InvinciblePrivateKillingUI"
 
 local frame = Instance.new("Frame", Gui)
-frame.Size = UDim2.new(0, 470, 0, 470)
+frame.Size = UDim2.new(0, 539, 0, 470)
 frame.Position = UDim2.new(0.5, -325, 0.5, -250)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 frame.BorderSizePixel = 0
