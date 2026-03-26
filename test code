@@ -5,14 +5,14 @@ local Gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 Gui.Name = "InvinciblePrivateKillingUI"
 
 local frame = Instance.new("Frame", Gui)
-frame.Size = UDim2.new(0, 650, 0, 500)
+frame.Size = UDim2.new(0, 470, 0, 460)
 frame.Position = UDim2.new(0.5, -325, 0.5, -250)
-frame.BackgroundColor3 = Color3.fromRGB(0, 10, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 frame.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 50)
-title.BackgroundColor3 = Color3.fromRGB(0, 20, 0)
+title.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Text = "Invincible Private Killing"
 title.Font = Enum.Font.SourceSansBold
@@ -51,7 +51,7 @@ local function createButton(text, y)
     btn.Size = UDim2.new(0, 300, 0, 40)
     btn.Position = UDim2.new(0, 20, 0, y)
     btn.Text = text
-    btn.BackgroundColor3 = Color3.fromRGB(0, 50, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Buttons are now red
     btn.TextColor3 = Color3.new(1, 1, 1)
     btn.Font = Enum.Font.SourceSans
     btn.TextSize = 16
@@ -128,6 +128,8 @@ controlsY = controlsY + 50
 local bigHitboxBtn, getBigHitboxState = createToggleButton("Auto Big Hitbox", controlsY, true)
 
 -- Assign button functionalities
+local gymCFrame = CFrame.new(-8625.93262, 17.2325287, -5730.47217, 0.765763462, -1.84813775e-09, 0.643122315, -1.32089262e-09, 1, 4.44647785e-09, -0.643122315, -4.25444568e-09, 0.765763462)
+
 tpGymBtn.MouseButton1Click:Connect(function()
     if gymCFrame then
         local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
