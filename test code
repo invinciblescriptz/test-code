@@ -1,400 +1,706 @@
--- =============================================
--- Invincible Good Karma Farm - Full Version
--- Only kills evil players to gain Good Karma
--- =============================================
+-- INV Public || Made by Invincible || (Cleaned & Fixed 2026 Edition)
 
--- UI Library
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library"))()
-local window = library:AddWindow("Invincible Good Karma Farm", {
+-- Load UI Library
+local success, library = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library", true))()
+end)
+
+if not success or not library then
+    warn("[INV] Failed to load UI Library")
+    return
+end
+
+-- Create Main Window
+local window = library:AddWindow("INV Public || Made by Invincible ||", {
     main_color = Color3.fromRGB(0, 0, 0),
-    min_size = Vector2.new(200, 200),
+    min_size = Vector2.new(520, 660),
     can_resize = false,
-    background_transparency = 1,
 })
 
--- Main Tab
-local mainTabData = window:AddTab("Main")
+-- Tabs
+local tabInfo = window:AddTab("Information")
+local tabMain = window:AddTab("Main")
+local tabTeleport = window:AddTab("Teleport")
+local tabRebirth = window:AddTab("Rebirth")
+local tabFarmOP = window:AddTab("Farm OP")
+local tabKiller = window:AddTab("Kill")
+local tabRockFarm = window:AddTab("Rock Farming (mobile)")
 
--- Settings
-local AutoFarmEnabled = true
-local AutoGoodKarmaEnabled = true
-local AutoServerHopEnabled = true
-local ServerHopInterval = 30
-local AutoTPKingGymEnabled = true
-local AutoLockPositionEnabled = true
-local AutoSetSunsetEnabled = true
-local AutoBigHitboxEnabled = true
+-- Info tab content
+tabInfo:AddLabel("Invincible loves Ninja Turtles").TextSize = 24
+tabInfo:AddLabel("Made by Invincible").TextSize = 22
+tabInfo:AddLabel("More features coming soon 🔜").TextSize = 22
 
--- New Sunset Location
-local gymCFrame = CFrame.new(4109.91309, 1022.23541, -3802.15332, -1, 0, 0, 0, 1, 0, 0, 0, -1)
-local gymPos = gymCFrame.Position
-
--- UI Toggles & Slider
-mainTabData:AddSwitch("Auto Punch (Farm)", function(state) AutoFarmEnabled = state end):Set(true)
-mainTabData:AddSwitch("Auto Good Karma (Kill Evil Only)", function(state) AutoGoodKarmaEnabled = state end):Set(true)
-mainTabData:AddSwitch("Auto Server Hop", function(state) AutoServerHopEnabled = state end):Set(true)
-mainTabData:AddSlider("Hop Interval (s)", function(value) ServerHopInterval = value end, {min = 5, max = 120}):Set(30)
-mainTabData:AddSwitch("Auto TP Muscle King Gym", function(state) AutoTPKingGymEnabled = state end):Set(true)
-mainTabData:AddSwitch("Auto Lock Position", function(state)
-    AutoLockPositionEnabled = state
-    if state then setupPositionLock() else clearPositionLock() end
-end):Set(true)
-
-mainTabData:AddSwitch("Auto Set Sunset Time", function(state)
-    AutoSetSunsetEnabled = state
-    if state then setSunsetTime() end
-end):Set(true)
-
-mainTabData:AddSwitch("Auto Big Hitbox", function(state)
-    AutoBigHitboxEnabled = state
-    if not state then resetHitbox() end
-end):Set(true)
-
--- Gym location buttons
-mainTabData:AddButton("TP Muscle King Gym (Manual)", function()
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then hrp.CFrame = gymCFrame end
-end)
-
-mainTabData:AddButton("Set Sunset Time (Manual)", setSunsetTime)
-
--- Credits Tab
-local creditsTab = window:AddTab("Credits")
-creditsTab:AddLabel("made by Invincible")
-creditsTab:AddLabel("https://discord.gg/bUythM4H")
-
--- Services
+-- Services & Globals
 local Players = game:GetService("Players")
+local RS = game:GetService("ReplicatedStorage")
+local WS = game:GetService("Workspace")
+local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
-local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
 local Lighting = game:GetService("Lighting")
-local LocalPlayer = Players.LocalPlayer
+local LP = Players.LocalPlayer
 
-if getgenv().GoodKarmaFarmLoaded then return end
-getgenv().GoodKarmaFarmLoaded = true
-
-local LastServerHop = os.clock()
-
--- Position Lock
-local positionLockAlignPos, positionLockAttachment
-
-local function clearPositionLock()
-    if positionLockAlignPos then positionLockAlignPos:Destroy() positionLockAlignPos = nil end
-    if positionLockAttachment then positionLockAttachment:Destroy() positionLockAttachment = nil end
+local muscleEvent = LP:WaitForChild("muscleEvent", 15)
+if not muscleEvent then
+    warn("[INV] muscleEvent not found - Are you in Lifting Legends?")
+    return
 end
 
-local function setupPositionLock()
-    clearPositionLock()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    pcall(function() hrp:SetNetworkOwner(LocalPlayer) end)
-    
-    positionLockAttachment = Instance.new("Attachment", hrp)
-    positionLockAlignPos = Instance.new("AlignPosition")
-    positionLockAlignPos.Attachment0 = positionLockAttachment
-    positionLockAlignPos.Position = gymPos
-    positionLockAlignPos.MaxForce = 1e7
-    positionLockAlignPos.MaxVelocity = math.huge
-    positionLockAlignPos.Responsiveness = 200
-    positionLockAlignPos.RigidityEnabled = true
-    positionLockAlignPos.Parent = hrp
-end
+getgenv().NexusRunning = true -- Global flag
 
--- Sunset Time (replaced night time)
-local function setSunsetTime()
-    Lighting.ClockTime = 18.5
-    Lighting.Brightness = 1.2
-    Lighting.Ambient = Color3.fromRGB(100, 70, 50)
-    Lighting.OutdoorAmbient = Color3.fromRGB(90, 60, 40)
-end
-
--- Hitbox
-local TARGET_HITBOX_SIZE = Vector3.new(25, 25, 25)
-
-local function setBigHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then hrp.Size = TARGET_HITBOX_SIZE end
-end
-
-local function resetHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then hrp.Size = Vector3.new(2, 2, 1) end
-end
-
--- Character vars
-local Character, Humanoid, Punch, HRP
-local LastAttack = 0
-
-local function UpdateAll()
-    Character = LocalPlayer.Character
-    if not Character then return end
-    Humanoid = Character:FindFirstChildOfClass("Humanoid")
-    Punch = Character:FindFirstChild("Punch")
-    HRP = Character:FindFirstChild("HumanoidRootPart")
-end
-
-LocalPlayer.CharacterAdded:Connect(function()
-    task.wait(2)
-    UpdateAll()
-    if AutoTPKingGymEnabled and HRP then
-        HRP.CFrame = gymCFrame
-        task.wait(0.5)
-    end
-    if AutoLockPositionEnabled then
-        task.wait(0.5)
-        setupPositionLock()
-    end
-    if AutoSetSunsetEnabled then
-        task.wait(0.3)
-        setSunsetTime()
-    end
-    if AutoBigHitboxEnabled then
-        task.spawn(function()
-            task.wait(0.8)
-            setBigHitbox()
-        end)
-    end
-end)
-
-UpdateAll()
-
--- Anti-AFK
-LocalPlayer.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-end)
-
--- Improved Server Hop
-local function ServerHop()
-    local placeId = game.PlaceId
-    local myJobId = game.JobId
-    for attempt = 1, 6 do
-        local success, response = pcall(function()
-            return HttpService:JSONDecode(game:HttpGet(
-                "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Desc&limit=100"
-            ))
-        end)
-        if not success or not response or not response.data then
-            task.wait(2 + attempt)
-            continue
-        end
-        local candidates = {}
-        for _, srv in response.data do
-            if srv.id == myJobId then continue end
-            if srv.playing >= srv.maxPlayers then continue end
-            if srv.playing < 8 then continue end
-            local fill = srv.playing / srv.maxPlayers
-            if fill > 0.25 and fill < 0.9 then
-                table.insert(candidates, srv)
-            end
-        end
-        if #candidates == 0 then
-            task.wait(3 + attempt * 1.5)
-            continue
-        end
-        local target = candidates[math.random(1, #candidates)]
-        pcall(function()
-            TeleportService:TeleportToPlaceInstance(placeId, target.id, LocalPlayer)
-        end)
-        task.wait(5 + attempt * 2)
-    end
-    warn("Server hop exhausted attempts")
-end
-
--- Main Loop
-RunService.Heartbeat:Connect(function()
-    -- Server Hop
-    if AutoServerHopEnabled and (os.clock() - LastServerHop) >= ServerHopInterval then
-        LastServerHop = os.clock()
-        task.spawn(ServerHop)
-    end
-
-    -- Sunset refresh
-    if AutoSetSunsetEnabled and math.floor(os.clock()) % 5 == 0 then
-        setSunsetTime()
-    end
-
-    -- Hitbox refresh
-    if AutoBigHitboxEnabled and math.floor(os.clock() * 10) % 3 == 0 then
-        setBigHitbox()
-    end
-
-    -- Aggressive position lock
-    if AutoLockPositionEnabled and HRP then
-        if positionLockAlignPos then
-            positionLockAlignPos.Position = gymPos
-        end
-        if math.floor(os.clock() * 20) % 3 == 0 then
-            HRP.CFrame = CFrame.new(gymPos) * HRP.CFrame.Rotation
-        end
-    end
-
-    UpdateAll()
-    if not Character or not Humanoid or Humanoid.Health <= 0 then return end
-
-    -- Equip Punch
-    if not Punch then
-        local tool = LocalPlayer.Backpack:FindFirstChild("Punch")
-        if tool then Humanoid:EquipTool(tool) end
-        return
-    end
-
-    -- Auto Punch
-    if AutoFarmEnabled and (os.clock() - LastAttack) >= 0.07 then
-        LastAttack = os.clock()
-        local attackTime = Punch:FindFirstChild("attackTime")
-        if attackTime then attackTime.Value = 0 end
-        Punch:Activate()
-    end
-
-    -- Auto Good Karma: ONLY target evil players
-    if AutoGoodKarmaEnabled then
-        for _, target in ipairs(Players:GetPlayers()) do
-            if target == LocalPlayer then continue end
-            local evilKarma = target:FindFirstChild("evilKarma")
-            local goodKarma = target:FindFirstChild("goodKarma")
-            if not (evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue")) then continue end
-            if evilKarma.Value <= goodKarma.Value then continue end -- Skip if not evil
-
-            local tChar = target.Character
-            if not tChar then continue end
-            local tHRP = tChar:FindFirstChild("HumanoidRootPart")
-            local tHead = tChar:FindFirstChild("Head")
-            local tHum = tChar:FindFirstChildOfClass("Humanoid")
-
-            if tHum and tHum.Health > 0 and (tHRP or tHead) then
-                local hand = Character:FindFirstChild("RightHand") or Character:FindFirstChild("LeftHand") or Character:FindFirstChild("Left Arm")
-                if hand then
-                    -- Touch RootPart
-                    if tHRP then
-                        firetouchinterest(hand, tHRP, 0)
-                        task.wait()
-                        firetouchinterest(hand, tHRP, 1)
-                    end
-                    -- Touch Head (better kill registration)
-                    if tHead then
-                        firetouchinterest(hand, tHead, 0)
-                        task.wait()
-                        firetouchinterest(hand, tHead, 1)
-                    end
-                end
-            end
-        end
-    end
-end)
-
-print("✅ Invincible Good Karma Farm Fully Loaded! (Updated to Sunset + New Location)")
-print("→ New TP Location: 4109.91, 1022.24, -3802.15")
-print("→ Only attacks evil players → You gain Good Karma on kills")
-print("→ Big Hitbox + Position Lock + Sunset Time active")
-
--- =============================================
--- Muscle Legends Kill Counter UI (Original)
--- =============================================
-local TweenService = game:GetService("TweenService")
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local leaderstats = player:WaitForChild("leaderstats")
-local killsValue = leaderstats:WaitForChild("Kills")
-
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "KillCounterUI"
-screenGui.Parent = playerGui
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-local frame = Instance.new("Frame")
-frame.Name = "MainFrame"
-frame.Size = UDim2.new(0, 250, 0, 80)
-frame.Position = UDim2.new(1, -270, 0, 20)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.BorderSizePixel = 0
-frame.Parent = screenGui
-
-local uiCorner = Instance.new("UICorner")
-uiCorner.CornerRadius = UDim.new(0, 12)
-uiCorner.Parent = frame
-
-local uiGradient = Instance.new("UIGradient")
-uiGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+-- State Variables
+local states = {
+    AutoPushups = false,
+    AutoWeight = false,
+    AutoHandstands = false,
+    FastPunch = false,
+    InfiniteJump = false,
+    AntiAFK = false,
+    KillAura = false,
+    AutoSlam = false,
 }
-uiGradient.Rotation = 45
-uiGradient.Parent = frame
 
-local uiStroke = Instance.new("UIStroke")
-uiStroke.Color = Color3.fromRGB(255, 215, 0)
-uiStroke.Thickness = 2
-uiStroke.Parent = frame
+-- Additional globals
+getgenv().rockFarmActive = false
+getgenv().selectedRockDurability = 0
+getgenv().AutoSpinWheel = false
+getgenv().FastPackFarm = false
+getgenv().AutoTPMuscleKing = false
+getgenv().PositionLocked = false
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(1, 0, 0, 30)
-titleLabel.Position = UDim2.new(0, 0, 0, 0)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "💪 KILLS"
-titleLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
-titleLabel.TextScaled = true
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Parent = frame
-
-local killsLabel = Instance.new("TextLabel")
-killsLabel.Name = "KillsLabel"
-killsLabel.Size = UDim2.new(1, 0, 0, 40)
-killsLabel.Position = UDim2.new(0, 0, 0, 30)
-killsLabel.BackgroundTransparency = 1
-killsLabel.Text = "0"
-killsLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-killsLabel.TextScaled = true
-killsLabel.Font = Enum.Font.GothamBlack
-killsLabel.Parent = frame
-
-local function formatNumber(num)
-    return tostring(num):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
+-- Helper functions
+local function getHRP()
+    local char = LP.Character
+    return char and char:FindFirstChild("HumanoidRootPart")
 end
 
-local function updateKills()
-    local formattedKills = formatNumber(killsValue.Value)
-    killsLabel.Text = formattedKills
-    local tween = TweenService:Create(killsLabel, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0.5})
-    tween:Play()
-    tween.Completed:Connect(function()
-        local tween2 = TweenService:Create(killsLabel, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0})
-        tween2:Play()
+local function tpTo(pos)
+    local hrp = getHRP()
+    if hrp then
+        hrp.CFrame = CFrame.new(pos)
+    end
+end
+
+local function safeEquip(toolName)
+    pcall(function()
+        local char = LP.Character
+        if not char or not char:FindFirstChild("Humanoid") then return end
+        local tool = LP.Backpack:FindFirstChild(toolName) or char:FindFirstChild(toolName)
+        if tool and tool.Parent ~= char then
+            char.Humanoid:EquipTool(tool)
+        end
     end)
 end
 
-killsValue.Changed:Connect(updateKills)
-updateKills()
+-- Auto-Repeat Function for tools
+local function startAutoRep(toolName, key)
+    task.spawn(function()
+        while states[key] and getgenv().NexusRunning do
+            pcall(function()
+                local char = LP.Character
+                local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+                if not humanoid or humanoid.Health <= 0 then
+                    task.wait(2)
+                    return
+                end
+                safeEquip(toolName)
+                muscleEvent:FireServer("rep")
+            end)
+            task.wait(0.1)
+        end
+        -- Cleanup: unequip tool
+        pcall(function()
+            local t = LP.Character and LP.Character:FindFirstChild(toolName)
+            if t then t.Parent = LP.Backpack end
+        end)
+    end)
+end
 
--- Make draggable
-local dragging = false
-local dragStart, startPos
-frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
+-- Infinite Jump
+local jumpConnection
+local function toggleInfiniteJump(enable)
+    states.InfiniteJump = enable
+    if enable then
+        if jumpConnection then return end
+        jumpConnection = UIS.JumpRequest:Connect(function()
+            pcall(function()
+                local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    hum:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+        end)
+    else
+        if jumpConnection then
+            jumpConnection:Disconnect()
+            jumpConnection = nil
+        end
+    end
+end
+
+-- Anti-AFK
+local afkConnection
+local function toggleAntiAFK(enable)
+    states.AntiAFK = enable
+    if enable then
+        if afkConnection then return end
+        afkConnection = LP.Idled:Connect(function()
+            pcall(function()
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end)
+        end)
+    else
+        if afkConnection then
+            afkConnection:Disconnect()
+            afkConnection = nil
+        end
+    end
+end
+
+-- Rock Farm Loop
+task.spawn(function()
+    while getgenv().NexusRunning do
+        if getgenv().rockFarmActive and getgenv().selectedRockDurability > 0 then
+            pcall(function()
+                local char = LP.Character
+                local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+                if not humanoid or humanoid.Health <= 0 then task.wait(1.5) return end
+
+                local durabilityVal = LP:FindFirstChild("Durability")
+                if not durabilityVal or durabilityVal.Value < getgenv().selectedRockDurability then
+                    task.wait(0.8)
+                    return
+                end
+
+                safeEquip("Punch")
+                local folder = WS:FindFirstChild("machinesFolder")
+                if folder then
+                    for _, obj in ipairs(folder:GetDescendants()) do
+                        if obj.Name == "neededDurability" and obj:IsA("IntValue") and obj.Value == getgenv().selectedRockDurability then
+                            local rock = obj.Parent:FindFirstChild("Rock")
+                            if rock and rock:IsA("BasePart") then
+                                local hrp = getHRP()
+                                if hrp then
+                                    firetouchinterest(rock, hrp, 0)
+                                    task.wait(0.025)
+                                    firetouchinterest(rock, hrp, 1)
+                                    muscleEvent:FireServer("punch", "leftHand")
+                                    muscleEvent:FireServer("punch", "rightHand")
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+        task.wait(0.22)
     end
 end)
 
-frame.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+-- ==================== -- Main Tab Controls
+local toolsFolder = tabMain:AddFolder("Tools")
+local rockFarmFolder = tabMain:AddFolder("Rock Farm")
+
+-- Auto features toggles
+toolsFolder:AddSwitch("Auto Pushups", function(s)
+    states.AutoPushups = s
+    if s then startAutoRep("Pushups", "AutoPushups") end
+end)
+
+toolsFolder:AddSwitch("Auto Weight", function(s)
+    states.AutoWeight = s
+    if s then startAutoRep("Weight", "AutoWeight") end
+end)
+
+toolsFolder:AddSwitch("Auto Handstands", function(s)
+    states.AutoHandstands = s
+    if s then startAutoRep("Handstands", "AutoHandstands") end
+end)
+
+toolsFolder:AddSwitch("Auto Punch (Fast)", function(s)
+    states.FastPunch = s
+    if s then
+        task.spawn(function()
+            while states.FastPunch and getgenv().NexusRunning do
+                pcall(function()
+                    if muscleEvent then
+                        muscleEvent:FireServer("punch", "rightHand")
+                        muscleEvent:FireServer("punch", "leftHand")
+                    end
+                    local char = LP.Character
+                    if char then
+                        local punch = char:FindFirstChild("Punch") or LP.Backpack:FindFirstChild("Punch")
+                        if punch and punch.Parent ~= char then
+                            char.Humanoid:EquipTool(punch)
+                        end
+                        if punch and punch.Parent == char then
+                            local attackTime = punch:FindFirstChild("attackTime")
+                            if attackTime and attackTime:IsA("NumberValue") then attackTime.Value = 0.01 end
+                            punch:Activate()
+                        end
+                    end
+                end)
+                task.wait(0.085)
+            end
+        end)
     end
 end)
 
-game:GetService("UserInputService").InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
+toolsFolder:AddSwitch("Infinite Jump", function(s)
+    toggleInfiniteJump(s)
+end)
+
+toolsFolder:AddSwitch("Anti-AFK", function(s)
+    toggleAntiAFK(s)
+end)
+
+-- Unlock Gamepass (client-side)
+tabInfo:AddButton("Unlock Auto-Lift Gamepass", function()
+    pcall(function()
+        local ids = RS:FindFirstChild("gamepassIds")
+        if not ids then warn("[INV] gamepassIds not found") return end
+        local owned = LP:FindFirstChild("ownedGamepasses")
+        if not owned then
+            owned = Instance.new("Folder", LP)
+            owned.Name = "ownedGamepasses"
+        end
+        for _, v in ipairs(ids:GetChildren()) do
+            if v:IsA("IntValue") and not owned:FindFirstChild(v.Name) then
+                local newVal = Instance.new("IntValue", owned)
+                newVal.Name = v.Name
+                newVal.Value = v.Value
+            end
+        end
+    end)
+end)
+
+-- Teleport Buttons
+local teleportLocations = {
+    {"Spawn / Safe", Vector3.new(-6, 5, -196)},
+    {"Secret Area", Vector3.new(1947, 2, 6191)},
+    {"Tiny Area", Vector3.new(-39, 6, 1886)},
+    {"Frozen", Vector3.new(-2623, 6, -409)},
+    {"Mythical", Vector3.new(2251, 6, 1073)},
+    {"Inferno", Vector3.new(-6759, 6, -1285)},
+    {"Legend", Vector3.new(4603, 990, -3898)},
+    {"Muscle King", Vector3.new(-8626, 16, -5730)},
+    {"Jungle", Vector3.new(-8642, 6, 2381)},
+    {"Lava Brawl", Vector3.new(4471, 119, -8836)},
+    {"Desert Brawl", Vector3.new(960, 17, -7398)},
+    {"Beach Brawl", Vector3.new(-1849, 20, -6335)},
+}
+
+for _, v in ipairs(teleportLocations) do
+    tabTeleport:AddButton(v[1], function() tpTo(v[2]) end)
+end
+
+-- Rock Farm Controls
+local function setRockFarm(durability, enable)
+    if enable then
+        getgenv().selectedRockDurability = durability
+        getgenv().rockFarmActive = true
+    else
+        if getgenv().selectedRockDurability == durability then
+            getgenv().rockFarmActive = false
+            getgenv().selectedRockDurability = 0
+        end
+    end
+end
+
+local rockFarmOptions = {
+    {"Farm Tiny Island Rock (0)", 0},
+    {"Farm Starter Island Rock (100)", 100},
+    {"Farm Legend Beach Rock (5000)", 5000},
+    {"Farm Frost Gym Rock (150k)", 150000},
+    {"Farm Mythical Gym Rock (400k)", 400000},
+    {"Farm Eternal Gym Rock (750k)", 750000},
+    {"Farm Legend Gym Rock (1M)", 1000000},
+    {"Farm Muscle King Gym Rock (5M)", 5000000},
+    {"Farm Ancient Jungle Rock (10M)", 10000000},
+}
+
+for _, option in ipairs(rockFarmOptions) do
+    local name, dur = option[1], option[2]
+    -- Use function to create switches
+    folder:AddSwitch(name, function(s)
+        setRockFarm(dur, s)
+    end)
+end
+
+-- Button to Stop All Rock Farming
+folder:AddButton("Stop All Rock Farming", function()
+    getgenv().rockFarmActive = false
+    getgenv().selectedRockDurability = 0
+end)
+
+-- ==================== -- Rebirth Tab Controls
+local autoRebirth = false
+local autoSize = false
+
+tabRebirth:AddSwitch("Auto Rebirth (Infinite)", function(val)
+    autoRebirth = val
+    if val then
+        task.spawn(function()
+            while autoRebirth and getgenv().NexusRunning do
+                pcall(function()
+                    RS.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+                end)
+                task.wait(0.45)
+            end
+        end)
     end
 end)
 
-print("Muscle Legends Kill Counter UI loaded! 💀")
+tabRebirth:AddSwitch("Auto Size 1", function(val)
+    autoSize = val
+    if val then
+        task.spawn(function()
+            while autoSize and getgenv().NexusRunning do
+                pcall(function()
+                    RS.rEvents.changeSpeedSizeRemote:InvokeServer("changeSize", 1)
+                end)
+                task.wait(0.2)
+            end
+        end)
+    end
+end)
+
+-- Auto TP to Muscle King
+tabRebirth:AddSwitch("Auto TP → Muscle King", function(v)
+    getgenv().AutoTPMuscleKing = v
+    if v then
+        task.spawn(function()
+            while getgenv().AutoTPMuscleKing do
+                tpTo(Vector3.new(-8646, 17, -5738))
+                task.wait(0.7)
+            end
+        end)
+    end
+end)
+
+-- Pack Farming (Fast)
+tabRebirth:AddLabel("Pack Farming").TextSize = 22
+tabRebirth:AddSwitch("Fast Rebirth Pack Farm", function(v)
+    getgenv().FastPackFarm = v
+    if v then
+        task.spawn(function()
+            local rep = RS.rEvents
+            local petsFolder = LP:WaitForChild("petsFolder")
+            local leader = LP:WaitForChild("leaderstats")
+
+            local function equipAll()
+                for _, folder in ipairs(petsFolder:GetChildren()) do
+                    if folder:IsA("Folder") then
+                        for _, pet in ipairs(folder:GetChildren()) do
+                            rep.equipPetEvent:FireServer("equipPet", pet)
+                        end
+                    end
+                end
+            end
+
+            while getgenv().FastPackFarm do
+                pcall(function()
+                    equipAll()
+                    task.wait(0.2)
+
+                    local need = 10000 + 5000 * leader.Rebirths.Value
+                    if LP:FindFirstChild("ultimatesFolder") and LP.ultimatesFolder:FindFirstChild("Golden Rebirth") then
+                        need = math.floor(need * (1 - LP.ultimatesFolder["Golden Rebirth"].Value * 0.1))
+                    end
+
+                    -- Equip best pet fallback
+                    local bestPet = petsFolder:FindFirstChild("Swift Samurai")
+                    if bestPet then
+                        rep.equipPetEvent:FireServer("equipPet", bestPet)
+                    end
+
+                    -- Rebirth until goal or stop
+                    local oldRebirth = leader.Rebirths.Value
+                    repeat
+                        rep.rebirthRemote:InvokeServer("rebirthRequest")
+                        task.wait(0.15)
+                    until leader.Rebirths.Value > oldRebirth or not getgenv().FastPackFarm
+                end)
+                task.wait(0.6)
+            end
+        end)
+    end
+end)
+
+-- ==========================
+-- OP Farm Script (Separated)
+-- ==========================
+local opFarmActive = false
+local function toggleAutoFarmOP(state)
+    getgenv()._AutoRepFarmEnabled = state
+    if state then
+        warn("[Auto Farm OP] Enabled")
+        -- You can add additional code here if needed
+    end
+end
+
+tabFarmOP:AddSwitch("Auto Farm OP", toggleAutoFarmOP)
+
+-- Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local Stats = game:GetService("Stats")
+local LocalPlayer = Players.LocalPlayer
+
+-- Configuration
+local PET_NAME = "Swift Samurai"
+local ROCK_NAME = "Rock5M"
+local PROTEIN_EGG_NAME = "ProteinEgg"
+local PROTEIN_EGG_INTERVAL = 30 * 60 -- 30 minutes
+local REPS_PER_CYCLE = 185
+local REP_DELAY = 0.01
+local ROCK_INTERVAL = 1
+local MAX_PING = 1100
+local MIN_PING = 300
+
+local HumanoidRootPart
+local lastProteinEggTime = 0
+local lastRockTime = 0
+local RockRef = workspace:FindFirstChild(ROCK_NAME)
+
+-- Functions
+local function getPing()
+    local success, ping = pcall(function()
+        return Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+    end)
+    return success and ping or 999
+end
+
+local function updateCharacterRefs()
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    HumanoidRootPart = character:WaitForChild("HumanoidRootPart", 5)
+end
+
+local function equipPet()
+    local petsFolder = LocalPlayer:FindFirstChild("petsFolder")
+    if petsFolder and petsFolder:FindFirstChild("Unique") then
+        for _, pet in pairs(petsFolder.Unique:GetChildren()) do
+            if pet.Name == PET_NAME then
+                RS.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                break
+            end
+        end
+    end
+end
+
+local function eatProteinEgg()
+    if LocalPlayer:FindFirstChild("Backpack") then
+        for _, item in pairs(LocalPlayer.Backpack:GetChildren()) do
+            if item.Name == PROTEIN_EGG_NAME then
+                RS.rEvents.eatEvent:FireServer("eat", item)
+                break
+            end
+        end
+    end
+end
+
+local function hitRock()
+    if not RockRef or not RockRef.Parent then
+        RockRef = workspace:FindFirstChild(ROCK_NAME)
+    end
+    if RockRef and HumanoidRootPart then
+        HumanoidRootPart.CFrame = RockRef.CFrame * CFrame.new(0, 0, -5)
+        RS.rEvents.hitEvent:FireServer("hit", RockRef)
+    end
+end
+
+-- Main Auto Farming Loop
+if not getgenv()._AutoRepFarmLoop then
+    getgenv()._AutoRepFarmLoop = true
+
+    task.spawn(function()
+        updateCharacterRefs()
+        equipPet()
+        lastProteinEggTime = tick()
+        lastRockTime = tick()
+
+        while true do
+            if getgenv()._AutoRepFarmEnabled then
+                local ping = getPing()
+                if ping > MAX_PING then
+                    warn("[Auto Rep Farm] High ping (" .. math.floor(ping) .. "ms), pausing 5 seconds...")
+                    task.wait(5)
+                else
+                    -- Repetition
+                    if LocalPlayer:FindFirstChild("muscleEvent") then
+                        for i = 1, REPS_PER_CYCLE do
+                            LocalPlayer.muscleEvent:FireServer("rep")
+                        end
+                    end
+
+                    -- Protein Egg
+                    if tick() - lastProteinEggTime >= PROTEIN_EGG_INTERVAL then
+                        eatProteinEgg()
+                        lastProteinEggTime = tick()
+                    end
+
+                    -- Hit Rock
+                    if tick() - lastRockTime >= ROCK_INTERVAL then
+                        hitRock()
+                        lastRockTime = tick()
+                    end
+
+                    task.wait(REP_DELAY)
+                end
+            else
+                task.wait(1)
+            end
+        end
+    end)
+end
+
+-- ==================== -- Additional Rock Farming (Mobile) ====================
+
+local function getTool()
+    for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+        if v.Name == "Punch" and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid:EquipTool(v)
+        end
+    end
+    game:GetService("Players").LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+    game:GetService("Players").LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+end
+
+local function createFarmSwitch(name, neededDurability)
+    return tabRockFarm:AddSwitch(name, function(isEnabled)
+        getgenv().autoFarm = isEnabled
+        if isEnabled then
+            spawn(function()
+                while getgenv().autoFarm do
+                    task.wait()
+                    local durabilityVal = game.Players.LocalPlayer.Durability
+                    if durabilityVal and durabilityVal.Value >= neededDurability then
+                        for _, v in pairs(game.Workspace.machinesFolder:GetDescendants()) do
+                            if v.Name == "neededDurability" and v:IsA("IntValue") and v.Value == neededDurability and game.Players.LocalPlayer.Character:FindFirstChild("LeftHand") and game.Players.LocalPlayer.Character:FindFirstChild("RightHand") then
+                                firetouchinterest(v.Parent.Rock, game.Players.LocalPlayer.Character.RightHand, 0)
+                                firetouchinterest(v.Parent.Rock, game.Players.LocalPlayer.Character.RightHand, 0.01)
+                                firetouchinterest(v.Parent.Rock, game.Players.LocalPlayer.Character.LeftHand, 0)
+                                firetouchinterest(v.Parent.Rock, game.Players.LocalPlayer.Character.LeftHand, 0.01)
+                                getTool()
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+-- Create rock farming switches
+createFarmSwitch("Farm Tiny Island Rock", 0)
+createFarmSwitch("Farm Starter Island Rock", 100)
+createFarmSwitch("Farm Legend Beach Rock", 5000)
+createFarmSwitch("Farm Frost Gym Rock", 150000)
+createFarmSwitch("Farm Mythical Gym Rock", 400000)
+createFarmSwitch("Farm Eternal Gym Rock", 750000)
+createFarmSwitch("Farm Legend Gym Rock", 1000000)
+createFarmSwitch("Farm Muscle King Gym Rock", 5000000)
+createFarmSwitch("Farm Ancient Jungle Rock", 10000000)
+
+-- Button to stop all rock farming
+tabRockFarm:AddButton("Stop All Rock Farming", function()
+    getgenv().autoFarm = false
+    getgenv().selectedRockDurability = 0
+end)
+
+-- ==================== -- Rebirth Tab Controls ====================
+local autoRebirth = false
+local autoSize = false
+
+tabRebirth:AddSwitch("Auto Rebirth (Infinite)", function(val)
+    autoRebirth = val
+    if val then
+        task.spawn(function()
+            while autoRebirth and getgenv().NexusRunning do
+                pcall(function()
+                    RS.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+                end)
+                task.wait(0.45)
+            end
+        end)
+    end
+end)
+
+tabRebirth:AddSwitch("Auto Size 1", function(val)
+    autoSize = val
+    if val then
+        task.spawn(function()
+            while autoSize and getgenv().NexusRunning do
+                pcall(function()
+                    RS.rEvents.changeSpeedSizeRemote:InvokeServer("changeSize", 1)
+                end)
+                task.wait(0.2)
+            end
+        end)
+    end
+end)
+
+-- Auto TP to Muscle King
+tabRebirth:AddSwitch("Auto TP → Muscle King", function(v)
+    getgenv().AutoTPMuscleKing = v
+    if v then
+        task.spawn(function()
+            while getgenv().AutoTPMuscleKing do
+                tpTo(Vector3.new(-8646, 17, -5738))
+                task.wait(0.7)
+            end
+        end)
+    end
+end)
+
+-- Pack Farming (Fast)
+tabRebirth:AddLabel("Pack Farming").TextSize = 22
+tabRebirth:AddSwitch("Fast Rebirth Pack Farm", function(v)
+    getgenv().FastPackFarm = v
+    if v then
+        task.spawn(function()
+            local rep = RS.rEvents
+            local petsFolder = LP:WaitForChild("petsFolder")
+            local leader = LP:WaitForChild("leaderstats")
+            local function equipAll()
+                for _, folder in ipairs(petsFolder:GetChildren()) do
+                    if folder:IsA("Folder") then
+                        for _, pet in ipairs(folder:GetChildren()) do
+                            rep.equipPetEvent:FireServer("equipPet", pet)
+                        end
+                    end
+                end
+            end
+
+            while getgenv().FastPackFarm do
+                pcall(function()
+                    equipAll()
+                    task.wait(0.2)
+
+                    local need = 10000 + 5000 * leader.Rebirths.Value
+                    if LP:FindFirstChild("ultimatesFolder") and LP.ultimatesFolder:FindFirstChild("Golden Rebirth") then
+                        need = math.floor(need * (1 - LP.ultimatesFolder["Golden Rebirth"].Value * 0.1))
+                    end
+
+                    -- Equip best pet fallback
+                    local bestPet = petsFolder:FindFirstChild("Swift Samurai")
+                    if bestPet then
+                        rep.equipPetEvent:FireServer("equipPet", bestPet)
+                    end
+
+                    -- Rebirth until goal or stop
+                    local oldRebirth = leader.Rebirths.Value
+                    repeat
+                        rep.rebirthRemote:InvokeServer("rebirthRequest")
+                        task.wait(0.15)
+                    until leader.Rebirths.Value > oldRebirth or not getgenv().FastPackFarm
+                end)
+                task.wait(0.6)
+            end
+        end)
+    end
+end)
+
+-- ==================== -- END ====================
