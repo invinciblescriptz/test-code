@@ -41,33 +41,40 @@ mainTabData:AddSwitch("Auto Big Hitbox", function(state)
 end):Set(true)
 
 // Add the "Auto Good Karma" switch
-mainTabData:AddSwitch("Auto Good Karma", function(bool)
-    autoGoodKarma = bool
-    task.spawn(function()
-        while autoGoodKarma do
-            local playerChar = LocalPlayer.Character
-            local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
-            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
-            if playerChar and rightHand and leftHand then
-                for _, target in ipairs(Players:GetPlayers()) do
-                    if target ~= LocalPlayer then
-                        local evilKarma = target:FindFirstChild("evilKarma")
-                        local goodKarma = target:FindFirstChild("goodKarma")
-                        if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and evilKarma.Value > goodKarma.Value then
-                            local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
-                            if rootPart then
-                                firetouchinterest(rightHand, rootPart, 1)
-                                firetouchinterest(leftHand, rootPart, 1)
-                                firetouchinterest(rightHand, rootPart, 0)
-                                firetouchinterest(leftHand, rootPart, 0)
+mainTabData:AddSwitch("Auto Good Karma", function(state)
+    autoGoodKarma = state
+    if state then
+        if not _G.KarmaLoop then
+            _G.KarmaLoop = true
+            spawn(function()
+                while _G.KarmaLoop do
+                    local playerChar = LocalPlayer.Character
+                    local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+                    local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+                    if playerChar and rightHand and leftHand then
+                        for _, target in ipairs(Players:GetPlayers()) do
+                            if target ~= LocalPlayer and target.Character then
+                                local evilKarma = target.Character:FindFirstChild("evilKarma")
+                                local goodKarma = target.Character:FindFirstChild("goodKarma")
+                                if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and evilKarma.Value > goodKarma.Value then
+                                    local rootPart = target.Character:FindFirstChild("HumanoidRootPart")
+                                    if rootPart then
+                                        firetouchinterest(rightHand, rootPart, 1)
+                                        firetouchinterest(leftHand, rootPart, 1)
+                                        firetouchinterest(rightHand, rootPart, 0)
+                                        firetouchinterest(leftHand, rootPart, 0)
+                                    end
+                                end
                             end
                         end
                     end
+                    task.wait(0.01)
                 end
-            end
-            task.wait(0.01)
+            end)
         end
-    end)
+    else
+        _G.KarmaLoop = false
+    end
 end)
 
 -- Gym location
@@ -304,54 +311,19 @@ RunService.Heartbeat:Connect(function()
         if positionLockAlignPos then
             positionLockAlignPos.Position = gymPos
         end
+        -- Fallback force
         if math.floor(os.clock() * 20) % 3 == 0 then
             HRP.CFrame = CFrame.new(gymPos) * HRP.CFrame.Rotation
         end
     end
 
-    UpdateAll()
-
-    if not AutoFarmEnabled or not Character or not Humanoid or Humanoid.Health <= 0 then
-        return
-    end
-
-    if not Punch then
-        local tool = LocalPlayer.Backpack:FindFirstChild("Punch")
-        if tool then Humanoid:EquipTool(tool) end
-        return
-    end
-
-    if (os.clock() - LastAttack) < 0.08 then return end
-    LastAttack = os.clock()
-
-    local attackTime = Punch:FindFirstChild("attackTime")
-    if attackTime then attackTime.Value = 0 end
-    Punch:Activate()
-
-    for _, other in Players:GetPlayers() do
-        if other == LocalPlayer then continue end
-        if not ShouldKillPlayer(other) then continue end
-
-        local char = other.Character
-        if not char then continue end
-
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        local head = char:FindFirstChild("Head")
-        local root = char:FindFirstChild("HumanoidRootPart")
-
-        if hum and head and root and hum.Health > 0 and Hand then
-            local wasAnchored = root.Anchored
-            root.Anchored = true
-            firetouchinterest(head, Hand, 0)
-            task.wait()
-            firetouchinterest(head, Hand, 1)
-            root.Anchored = wasAnchored
-        end
-    end
+    -- Kill logic (removed)
 end)
 
--- Add the automatic "Remove Punch Anim" setup on load
-task.spawn(function()
+-- ===========================
+-- AUTOMATIC "Remove Punch Anim" setup
+-- ===========================
+spawn(function()
     local blockedAnimations = {
         ["rbxassetid://3638729053"] = true,
         ["rbxassetid://3638767427"] = true,
@@ -362,90 +334,88 @@ task.spawn(function()
         if not char or not char:FindFirstChild("Humanoid") then return end
 
         local humanoid = char:FindFirstChild("Humanoid")
-
+        -- Stop existing animations
         for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
             if track.Animation then
                 local animId = track.Animation.AnimationId
                 local animName = track.Name:lower()
-
                 if blockedAnimations[animId] or
-                    animName:match("punch") or
-                    animName:match("attack") or
-                    animName:match("right") then
+                   animName:match("punch") or
+                   animName:match("attack") or
+                   animName:match("right") then
                     track:Stop()
                 end
             end
         end
 
-        if not _G.AnimBlockConnection then
-            local connection = humanoid.AnimationPlayed:Connect(function(track)
-                if track.Animation then
-                    local animId = track.Animation.AnimationId
-                    local animName = track.Name:lower()
-
-                    if blockedAnimations[animId] or
-                        animName:match("punch") or
-                        animName:match("attack") or
-                        animName:match("right") then
-                        track:Stop()
-                    end
-                end
-            end)
-
-            _G.AnimBlockConnection = connection
-        end
-    end
-
-    setupAnimationBlocking()
-
-    local function overrideToolActivation()
-        local function processTool(tool)
-            if tool and (tool.Name == "Punch" or tool.Name:match("Attack") or tool.Name:match("Right")) then
-                if not tool:GetAttribute("ActivatedOverride") then
-                    tool:SetAttribute("ActivatedOverride", true)
-
-                    local connection = tool.Activated:Connect(function()
-                        task.wait(0.05)
-
-                        local char = game.Players.LocalPlayer.Character
-                        if char and char:FindFirstChild("Humanoid") then
-                            for _, track in pairs(char.Humanoid:GetPlayingAnimationTracks()) do
-                                if track.Animation then
-                                    local animId = track.Animation.AnimationId
-                                    local animName = track.Name:lower()
-
-                                    if blockedAnimations[animId] or
-                                        animName:match("punch") or
-                                        animName:match("attack") or
-                                        animName:match("right") then
-                                        track:Stop()
-                                    end
+        -- Keep stopping animations during heartbeat
+        if not _G.AnimMonitorConnection then
+            _G.AnimMonitorConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if tick() % 0.5 < 0.01 then
+                    local char2 = game.Players.LocalPlayer.Character
+                    if char2 and char2:FindFirstChild("Humanoid") then
+                        for _, track in pairs(char2.Humanoid:GetPlayingAnimationTracks()) do
+                            if track.Animation then
+                                local animId = track.Animation.AnimationId
+                                local animName = track.Name:lower()
+                                if blockedAnimations[animId] or
+                                   animName:match("punch") or
+                                   animName:match("attack") or
+                                   animName:match("right") then
+                                    track:Stop()
                                 end
                             end
                         end
-                    end)
-
-                    if not _G.ToolConnections then
-                        _G.ToolConnections = {}
                     end
-                    _G.ToolConnections[tool] = connection
                 end
+            end)
+        end
+    end
+
+    -- Run setup on load
+    setupAnimationBlocking()
+
+    -- Override tools to prevent animations
+    local function overrideToolActivation()
+        local function processTool(tool)
+            if not tool then return end
+            if (tool.Name == "Punch" or tool.Name:match("Attack") or tool.Name:match("Right")) and not tool:GetAttribute("ActivatedOverride") then
+                tool:SetAttribute("ActivatedOverride", true)
+                local conn = tool.Activated:Connect(function()
+                    task.wait(0.05)
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("Humanoid") then
+                        for _, track in pairs(char.Humanoid:GetPlayingAnimationTracks()) do
+                            if track.Animation then
+                                local animId = track.Animation.AnimationId
+                                local animName = track.Name:lower()
+                                if blockedAnimations[animId] or
+                                   animName:match("punch") or
+                                   animName:match("attack") or
+                                   animName:match("right") then
+                                    track:Stop()
+                                end
+                            end
+                        end
+                    end
+                end)
+                if not _G.ToolConnections then _G.ToolConnections = {} end
+                _G.ToolConnections[tool] = conn
             end
         end
 
+        -- Process existing tools
         for _, tool in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
             processTool(tool)
         end
-
         local char = game.Players.LocalPlayer.Character
         if char then
             for _, child in pairs(char:GetChildren()) do
-                if child:IsA("Tool") then
-                    processTool(child)
-                end
+                if child:IsA("Tool") then processTool(child) end
             end
         end
 
+        -- Listen for new tools
         if not _G.BackpackAddedConnection then
             _G.BackpackAddedConnection = game.Players.LocalPlayer.Backpack.ChildAdded:Connect(function(child)
                 if child:IsA("Tool") then
@@ -455,8 +425,8 @@ task.spawn(function()
             end)
         end
 
-        if not _G.CharacterToolAddedConnection and char then
-            _G.CharacterToolAddedConnection = char.ChildAdded:Connect(function(child)
+        if not _G.CharacterToolAddedConnection then
+            _G.CharacterToolAddedConnection = game.Players.LocalPlayer.Character.ChildAdded:Connect(function(child)
                 if child:IsA("Tool") then
                     task.wait(0.1)
                     processTool(child)
@@ -466,46 +436,6 @@ task.spawn(function()
     end
 
     overrideToolActivation()
-
-    if not _G.AnimMonitorConnection then
-        _G.AnimMonitorConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            if tick() % 0.5 < 0.01 then
-                local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("Humanoid") then
-                    for _, track in pairs(char.Humanoid:GetPlayingAnimationTracks()) do
-                        if track.Animation then
-                            local animId = track.Animation.AnimationId
-                            local animName = track.Name:lower()
-
-                            if blockedAnimations[animId] or
-                                animName:match("punch") or
-                                animName:match("attack") or
-                                animName:match("right") then
-                                track:Stop()
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-
-    if not _G.CharacterAddedConnection then
-        _G.CharacterAddedConnection = game.Players.LocalPlayer.CharacterAdded:Connect(function(newChar)
-            task.wait(1)
-            setupAnimationBlocking()
-            overrideToolActivation()
-
-            if _G.CharacterToolAddedConnection then
-                _G.CharacterToolAddedConnection:Disconnect()
-            end
-
-            _G.CharacterToolAddedConnection = newChar.ChildAdded:Connect(function(child)
-                if child:IsA("Tool") then
-                    task.wait(0.1)
-                    processTool(child)
-                end
-            end)
-        end)
-    end
 end)
+
+-- End of script
