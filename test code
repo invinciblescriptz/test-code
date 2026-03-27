@@ -22,24 +22,27 @@ local AutoServerHopEnabled = true
 local ServerHopInterval = 30
 local AutoTPKingGymEnabled = true
 local AutoLockPositionEnabled = true
-local AutoSetNightTimeEnabled = true
+local AutoSetSunsetEnabled = true
 local AutoBigHitboxEnabled = true
+
+-- New Sunset Location
+local gymCFrame = CFrame.new(4109.91309, 1022.23541, -3802.15332, -1, 0, 0, 0, 1, 0, 0, 0, -1)
+local gymPos = gymCFrame.Position
 
 -- UI Toggles & Slider
 mainTabData:AddSwitch("Auto Punch (Farm)", function(state) AutoFarmEnabled = state end):Set(true)
 mainTabData:AddSwitch("Auto Good Karma (Kill Evil Only)", function(state) AutoGoodKarmaEnabled = state end):Set(true)
 mainTabData:AddSwitch("Auto Server Hop", function(state) AutoServerHopEnabled = state end):Set(true)
 mainTabData:AddSlider("Hop Interval (s)", function(value) ServerHopInterval = value end, {min = 5, max = 120}):Set(30)
-
 mainTabData:AddSwitch("Auto TP Muscle King Gym", function(state) AutoTPKingGymEnabled = state end):Set(true)
 mainTabData:AddSwitch("Auto Lock Position", function(state)
     AutoLockPositionEnabled = state
     if state then setupPositionLock() else clearPositionLock() end
 end):Set(true)
 
-mainTabData:AddSwitch("Auto Set Night Time", function(state)
-    AutoSetNightTimeEnabled = state
-    if state then setNightTime() end
+mainTabData:AddSwitch("Auto Set Sunset Time", function(state)
+    AutoSetSunsetEnabled = state
+    if state then setSunsetTime() end
 end):Set(true)
 
 mainTabData:AddSwitch("Auto Big Hitbox", function(state)
@@ -47,15 +50,13 @@ mainTabData:AddSwitch("Auto Big Hitbox", function(state)
     if not state then resetHitbox() end
 end):Set(true)
 
--- Gym location
-local gymCFrame = CFrame.new(-8625.93262, 17.2325287, -5730.47217, 0.765763462, -1.84813775e-09, 0.643122315, -1.32089262e-09, 1, 4.44647785e-09, -0.643122315, -4.25444568e-09, 0.765763462)
-local gymPos = gymCFrame.Position
-
+-- Gym location buttons
 mainTabData:AddButton("TP Muscle King Gym (Manual)", function()
     local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if hrp then hrp.CFrame = gymCFrame end
 end)
-mainTabData:AddButton("Set Night Time (Manual)", setNightTime)
+
+mainTabData:AddButton("Set Sunset Time (Manual)", setSunsetTime)
 
 -- Credits Tab
 local creditsTab = window:AddTab("Credits")
@@ -63,13 +64,13 @@ creditsTab:AddLabel("made by Invincible")
 creditsTab:AddLabel("https://discord.gg/bUythM4H")
 
 -- Services
-local Players         = game:GetService("Players")
-local RunService      = game:GetService("RunService")
-local VirtualUser     = game:GetService("VirtualUser")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
 local TeleportService = game:GetService("TeleportService")
-local HttpService     = game:GetService("HttpService")
-local Lighting        = game:GetService("Lighting")
-local LocalPlayer     = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+local LocalPlayer = Players.LocalPlayer
 
 if getgenv().GoodKarmaFarmLoaded then return end
 getgenv().GoodKarmaFarmLoaded = true
@@ -78,6 +79,7 @@ local LastServerHop = os.clock()
 
 -- Position Lock
 local positionLockAlignPos, positionLockAttachment
+
 local function clearPositionLock()
     if positionLockAlignPos then positionLockAlignPos:Destroy() positionLockAlignPos = nil end
     if positionLockAttachment then positionLockAttachment:Destroy() positionLockAttachment = nil end
@@ -89,6 +91,7 @@ local function setupPositionLock()
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
     pcall(function() hrp:SetNetworkOwner(LocalPlayer) end)
+    
     positionLockAttachment = Instance.new("Attachment", hrp)
     positionLockAlignPos = Instance.new("AlignPosition")
     positionLockAlignPos.Attachment0 = positionLockAttachment
@@ -100,21 +103,23 @@ local function setupPositionLock()
     positionLockAlignPos.Parent = hrp
 end
 
--- Night Time
-local function setNightTime()
-    Lighting.ClockTime = 0
-    Lighting.Brightness = 0.5
-    Lighting.Ambient = Color3.fromRGB(50,50,70)
-    Lighting.OutdoorAmbient = Color3.fromRGB(30,30,50)
+-- Sunset Time (replaced night time)
+local function setSunsetTime()
+    Lighting.ClockTime = 18.5
+    Lighting.Brightness = 1.2
+    Lighting.Ambient = Color3.fromRGB(100, 70, 50)
+    Lighting.OutdoorAmbient = Color3.fromRGB(90, 60, 40)
 end
 
 -- Hitbox
 local TARGET_HITBOX_SIZE = Vector3.new(25, 25, 25)
+
 local function setBigHitbox()
     local char = LocalPlayer.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
     if hrp then hrp.Size = TARGET_HITBOX_SIZE end
 end
+
 local function resetHitbox()
     local char = LocalPlayer.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -144,9 +149,9 @@ LocalPlayer.CharacterAdded:Connect(function()
         task.wait(0.5)
         setupPositionLock()
     end
-    if AutoSetNightTimeEnabled then
+    if AutoSetSunsetEnabled then
         task.wait(0.3)
-        setNightTime()
+        setSunsetTime()
     end
     if AutoBigHitboxEnabled then
         task.spawn(function()
@@ -155,6 +160,7 @@ LocalPlayer.CharacterAdded:Connect(function()
         end)
     end
 end)
+
 UpdateAll()
 
 -- Anti-AFK
@@ -208,9 +214,9 @@ RunService.Heartbeat:Connect(function()
         task.spawn(ServerHop)
     end
 
-    -- Night refresh
-    if AutoSetNightTimeEnabled and math.floor(os.clock()) % 5 == 0 then
-        setNightTime()
+    -- Sunset refresh
+    if AutoSetSunsetEnabled and math.floor(os.clock()) % 5 == 0 then
+        setSunsetTime()
     end
 
     -- Hitbox refresh
@@ -250,15 +256,13 @@ RunService.Heartbeat:Connect(function()
     if AutoGoodKarmaEnabled then
         for _, target in ipairs(Players:GetPlayers()) do
             if target == LocalPlayer then continue end
-
             local evilKarma = target:FindFirstChild("evilKarma")
             local goodKarma = target:FindFirstChild("goodKarma")
             if not (evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue")) then continue end
-            if evilKarma.Value <= goodKarma.Value then continue end  -- Skip if not evil
+            if evilKarma.Value <= goodKarma.Value then continue end -- Skip if not evil
 
             local tChar = target.Character
             if not tChar then continue end
-
             local tHRP = tChar:FindFirstChild("HumanoidRootPart")
             local tHead = tChar:FindFirstChild("Head")
             local tHum = tChar:FindFirstChildOfClass("Humanoid")
@@ -284,9 +288,10 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("✅ Invincible Good Karma Farm Fully Loaded! (400+ lines)")
+print("✅ Invincible Good Karma Farm Fully Loaded! (Updated to Sunset + New Location)")
+print("→ New TP Location: 4109.91, 1022.24, -3802.15")
 print("→ Only attacks evil players → You gain Good Karma on kills")
-print("→ Big Hitbox + Gym Lock + Night Time active")
+print("→ Big Hitbox + Position Lock + Sunset Time active")
 
 -- =============================================
 -- Muscle Legends Kill Counter UI (Original)
@@ -294,7 +299,6 @@ print("→ Big Hitbox + Gym Lock + Night Time active")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-
 local leaderstats = player:WaitForChild("leaderstats")
 local killsValue = leaderstats:WaitForChild("Kills")
 
@@ -379,12 +383,14 @@ frame.InputBegan:Connect(function(input)
         startPos = frame.Position
     end
 end)
+
 frame.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
+
 game:GetService("UserInputService").InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = false
