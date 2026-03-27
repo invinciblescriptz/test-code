@@ -589,7 +589,7 @@ local tpPositions = {
 }
 for _, data in ipairs(tpPositions) do
     local name, pos = data[1], data[2]
-    farmingTab:AddButton(name, function() tpTo(pos) end)
+    rebirthTab:AddButton(name, function() tpTo(pos) end)
 end
 
 -- Anti-lag
@@ -658,7 +658,7 @@ rebirthTab:AddButton("Lock Position", function()
 end)
 
 -- Change time of day dropdown
-local timeDropdown = farmingTab:AddDropdown("Change Time", function(selection)
+local timeDropdown = rebirthTab:AddDropdown("Change Time", function(selection)
     local lighting = game:GetService("Lighting")
     lighting.Brightness = 2
     lighting.FogEnd = 100000
@@ -772,3 +772,4 @@ rebirthTab:AddSwitch("Eat Egg (30 Min)", function(state)
     autoEatEgg30 = state
     print(state and "[AutoEgg] Activado." or "[AutoEgg] Desactivado.")
 end)
+
