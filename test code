@@ -1,7 +1,6 @@
 -- UI Library
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library"))()
-
-local window = library:AddWindow("Invincible Kill Farm", {
+local window = library:AddWindow("Invincible Good Karma Farm", {
     main_color = Color3.fromRGB(0, 0, 0),
     min_size = Vector2.new(200, 200),
     can_resize = false,
@@ -9,165 +8,28 @@ local window = library:AddWindow("Invincible Kill Farm", {
 })
 
 -- Main Tab
-local mainTabData, mainTab = window:AddTab("Main")
-
--- Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local VirtualUser = game:GetService("VirtualUser")
-local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
-local Lighting = game:GetService("Lighting")
-
-local LocalPlayer = Players.LocalPlayer
+local mainTabData = window:AddTab("Main")
 
 -- Settings
 local AutoFarmEnabled = true
+local AutoGoodKarmaEnabled = true
 local AutoServerHopEnabled = true
 local ServerHopInterval = 30
-local KillOnlyWeakerEnabled = true
 local AutoTPKingGymEnabled = true
 local AutoLockPositionEnabled = true
 local AutoSetNightTimeEnabled = true
 local AutoBigHitboxEnabled = true
-local autoGoodKarma = false
 
--- Variables
-local LastServerHop = os.clock()
-local positionLockAlignPos, positionLockAttachment = nil, nil
-
-local gymCFrame = CFrame.new(-8625.93262, 17.2325287, -5730.47217, 0.765763462, -1.84813775e-09, 0.643122315, -1.32089262e-09, 1, 4.44647785e-09, -0.643122315, -4.25444568e-09, 0.765763462)
-local gymPos = gymCFrame.Position
-
-local TARGET_HITBOX_SIZE = Vector3.new(25, 25, 25)
-
--- Anti-AFK
-LocalPlayer.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-end)
-
--- =======================
--- Position Lock Functions
--- =======================
-local function clearPositionLock()
-    if positionLockAlignPos then
-        positionLockAlignPos:Destroy()
-        positionLockAlignPos = nil
-    end
-    if positionLockAttachment then
-        positionLockAttachment:Destroy()
-        positionLockAttachment = nil
-    end
-end
-
-local function setupPositionLock()
-    clearPositionLock()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
-    pcall(function() hrp:SetNetworkOwner(LocalPlayer) end)
-
-    positionLockAttachment = Instance.new("Attachment")
-    positionLockAttachment.Parent = hrp
-
-    positionLockAlignPos = Instance.new("AlignPosition")
-    positionLockAlignPos.Attachment0 = positionLockAttachment
-    positionLockAlignPos.Position = gymPos
-    positionLockAlignPos.MaxForce = 1e7
-    positionLockAlignPos.MaxVelocity = math.huge
-    positionLockAlignPos.Responsiveness = 200
-    positionLockAlignPos.RigidityEnabled = true
-    positionLockAlignPos.Parent = hrp
-end
-
--- =======================
--- Night Time
--- =======================
-local function setNightTime()
-    Lighting.ClockTime = 0
-    Lighting.Brightness = 0.5
-    Lighting.Ambient = Color3.fromRGB(50, 50, 70)
-    Lighting.OutdoorAmbient = Color3.fromRGB(30, 30, 50)
-end
-
--- =======================
--- Hitbox Functions
--- =======================
-local function setBigHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.Size = TARGET_HITBOX_SIZE
-        hrp.Transparency = 0.7 -- optional: makes it visible for debugging
-    end
-end
-
-local function resetHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.Size = Vector3.new(2, 2, 1)
-        hrp.Transparency = 1
-    end
-end
-
--- =======================
--- Stat Functions
--- =======================
-local function GetPlayerStatValue(plr, statNames)
-    if not plr then return nil end
-    if type(statNames) == "string" then statNames = {statNames} end
-
-    for _, name in pairs(statNames) do
-        local val = plr:GetAttribute(name)
-        if val ~= nil then return tonumber(val) end
-    end
-
-    local stats = plr:FindFirstChild("leaderstats")
-    if stats then
-        for _, name in pairs(statNames) do
-            local v = stats:FindFirstChild(name)
-            if v and v:IsA("ValueBase") then
-                return tonumber(v.Value)
-            end
-        end
-    end
-    return nil
-end
-
-local function GetLocalPlayerDamage()
-    return GetPlayerStatValue(LocalPlayer, {"Damage", "DMG", "Attack", "Strength", "Str"}) or 1
-end
-
-local function GetTargetHealth(target)
-    local hum = target.Character and target.Character:FindFirstChildOfClass("Humanoid")
-    return hum and hum.MaxHealth or 100
-end
-
-local function ShouldKillPlayer(target)
-    if not KillOnlyWeakerEnabled then return true end
-    local myDmg = GetLocalPlayerDamage()
-    local theirHP = GetTargetHealth(target)
-    return math.ceil(theirHP / myDmg) <= 5
-end
-
--- =======================
--- UI Elements
--- =======================
-mainTabData:AddSwitch("Auto Farm", function(state) AutoFarmEnabled = state end):Set(true)
+-- UI Toggles
+mainTabData:AddSwitch("Auto Punch (Farm)", function(state) AutoFarmEnabled = state end):Set(true)
+mainTabData:AddSwitch("Auto Good Karma (Kill Evil Only)", function(state) AutoGoodKarmaEnabled = state end):Set(true)
 mainTabData:AddSwitch("Auto Server Hop", function(state) AutoServerHopEnabled = state end):Set(true)
 mainTabData:AddSlider("Hop Interval (s)", function(value) ServerHopInterval = value end, {min = 5, max = 120}):Set(30)
-mainTabData:AddSwitch("Kill Only Weaker", function(state) KillOnlyWeakerEnabled = state end):Set(true)
+
 mainTabData:AddSwitch("Auto TP Muscle King Gym", function(state) AutoTPKingGymEnabled = state end):Set(true)
 mainTabData:AddSwitch("Auto Lock Position", function(state)
     AutoLockPositionEnabled = state
-    if state then
-        setupPositionLock()
-    else
-        clearPositionLock()
-    end
+    if state then setupPositionLock() else clearPositionLock() end
 end):Set(true)
 
 mainTabData:AddSwitch("Auto Set Night Time", function(state)
@@ -180,250 +42,219 @@ mainTabData:AddSwitch("Auto Big Hitbox", function(state)
     if not state then resetHitbox() end
 end):Set(true)
 
--- Auto Good Karma (Fixed & Improved)
-mainTabData:AddSwitch("Auto Good Karma", function(state)
-    autoGoodKarma = state
-    if state then
-        if not _G.KarmaLoop then
-            _G.KarmaLoop = true
-            spawn(function()
-                while _G.KarmaLoop and task.wait(0.01) do
-                    local char = LocalPlayer.Character
-                    local rightHand = char and char:FindFirstChild("RightHand")
-                    local leftHand = char and char:FindFirstChild("LeftHand")
+-- Gym Location
+local gymCFrame = CFrame.new(-8625.93262, 17.2325287, -5730.47217, 0.765763462, -1.84813775e-09, 0.643122315, -1.32089262e-09, 1, 4.44647785e-09, -0.643122315, -4.25444568e-09, 0.765763462)
+local gymPos = gymCFrame.Position
 
-                    if char and rightHand and leftHand then
-                        for _, target in ipairs(Players:GetPlayers()) do
-                            if target ~= LocalPlayer and target.Character then
-                                local evilKarma = target.Character:FindFirstChild("evilKarma")
-                                local goodKarma = target.Character:FindFirstChild("goodKarma")
-
-                                if evilKarma and goodKarma 
-                                    and evilKarma:IsA("IntValue") 
-                                    and goodKarma:IsA("IntValue") 
-                                    and evilKarma.Value > goodKarma.Value then
-
-                                    local rootPart = target.Character:FindFirstChild("HumanoidRootPart")
-                                    if rootPart then
-                                        firetouchinterest(rightHand, rootPart, 1)
-                                        firetouchinterest(leftHand, rootPart, 1)
-                                        task.wait(0.05)
-                                        firetouchinterest(rightHand, rootPart, 0)
-                                        firetouchinterest(leftHand, rootPart, 0)
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-    else
-        _G.KarmaLoop = false
-    end
-end)
-
--- Manual Buttons
-mainTabData:AddButton("TP Muscle King Gym (Manual)", function()
+mainTabData:AddButton("TP to Muscle King Gym", function()
     local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.CFrame = gymCFrame
-    end
+    if hrp then hrp.CFrame = gymCFrame end
 end)
 
-mainTabData:AddButton("Set Night Time (Manual)", setNightTime)
+mainTabData:AddButton("Set Night Time", function() setNightTime() end)
 
--- Credits Tab
+-- Credits
 local creditsTab = window:AddTab("Credits")
 creditsTab:AddLabel("Made by Invincible")
 creditsTab:AddLabel("Discord: https://discord.gg/bUythM4H")
 
--- =======================
--- Character Handling
--- =======================
-local function UpdateCharacter()
+-- Services
+local Players         = game:GetService("Players")
+local RunService      = game:GetService("RunService")
+local VirtualUser     = game:GetService("VirtualUser")
+local TeleportService = game:GetService("TeleportService")
+local HttpService     = game:GetService("HttpService")
+local Lighting        = game:GetService("Lighting")
+local LocalPlayer     = Players.LocalPlayer
+
+if getgenv().GoodKarmaFarmLoaded then return end
+getgenv().GoodKarmaFarmLoaded = true
+
+local LastServerHop = os.clock()
+
+-- Position Lock
+local positionLockAlignPos, positionLockAttachment
+
+local function clearPositionLock()
+    if positionLockAlignPos then positionLockAlignPos:Destroy() positionLockAlignPos = nil end
+    if positionLockAttachment then positionLockAttachment:Destroy() positionLockAttachment = nil end
+end
+
+local function setupPositionLock()
+    clearPositionLock()
     local char = LocalPlayer.Character
-    if not char then return end
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    pcall(function() hrp:SetNetworkOwner(LocalPlayer) end)
+    positionLockAttachment = Instance.new("Attachment", hrp)
+    positionLockAlignPos = Instance.new("AlignPosition")
+    positionLockAlignPos.Attachment0 = positionLockAttachment
+    positionLockAlignPos.Position = gymPos
+    positionLockAlignPos.MaxForce = 1e7
+    positionLockAlignPos.MaxVelocity = math.huge
+    positionLockAlignPos.Responsiveness = 200
+    positionLockAlignPos.RigidityEnabled = true
+    positionLockAlignPos.Parent = hrp
+end
+
+-- Night Time
+local function setNightTime()
+    Lighting.ClockTime = 0
+    Lighting.Brightness = 0.5
+    Lighting.Ambient = Color3.fromRGB(50,50,70)
+    Lighting.OutdoorAmbient = Color3.fromRGB(30,30,50)
+end
+
+-- Hitbox
+local TARGET_HITBOX_SIZE = Vector3.new(25, 25, 25)
+local function setBigHitbox()
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then hrp.Size = TARGET_HITBOX_SIZE end
+end
+
+local function resetHitbox()
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then hrp.Size = Vector3.new(2, 2, 1) end
+end
+
+-- Character Update
+local Character, Humanoid, Punch, HRP
+local LastAttack = 0
+
+local function UpdateAll()
+    Character = LocalPlayer.Character
+    if not Character then return end
+    Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    Punch = Character:FindFirstChild("Punch")
+    HRP = Character:FindFirstChild("HumanoidRootPart")
 end
 
 LocalPlayer.CharacterAdded:Connect(function()
     task.wait(2)
-    UpdateCharacter()
-
-    if AutoTPKingGymEnabled then
-        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = gymCFrame
-            task.wait(0.5)
-        end
-    end
-
-    if AutoLockPositionEnabled then
-        task.wait(0.5)
-        setupPositionLock()
-    end
-
-    if AutoSetNightTimeEnabled then
-        task.wait(0.3)
-        setNightTime()
-    end
-
+    UpdateAll()
+    if AutoTPKingGymEnabled and HRP then HRP.CFrame = gymCFrame end
+    if AutoLockPositionEnabled then task.wait(0.5); setupPositionLock() end
+    if AutoSetNightTimeEnabled then setNightTime() end
     if AutoBigHitboxEnabled then
-        task.spawn(function()
-            task.wait(0.8)
-            setBigHitbox()
-        end)
+        task.spawn(function() task.wait(0.8); setBigHitbox() end)
     end
 end)
 
--- =======================
+UpdateAll()
+
+-- Anti-AFK
+LocalPlayer.Idled:Connect(function()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new())
+end)
+
 -- Server Hop
--- =======================
 local function ServerHop()
     local placeId = game.PlaceId
     local myJobId = game.JobId
-
     for attempt = 1, 6 do
         local success, response = pcall(function()
-            return HttpService:JSONDecode(game:HttpGet(
-                "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Desc&limit=100"
-            ))
+            return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Desc&limit=100"))
         end)
-
         if not success or not response or not response.data then
             task.wait(2 + attempt)
             continue
         end
-
         local candidates = {}
-        for _, srv in ipairs(response.data) do
+        for _, srv in response.data do
             if srv.id == myJobId then continue end
-            if srv.playing >= srv.maxPlayers then continue end
-            if srv.playing < 8 then continue end
-
+            if srv.playing >= srv.maxPlayers or srv.playing < 8 then continue end
             local fill = srv.playing / srv.maxPlayers
             if fill > 0.25 and fill < 0.9 then
                 table.insert(candidates, srv)
             end
         end
-
         if #candidates > 0 then
-            local target = candidates[math.random(1, #candidates)]
+            local targetSrv = candidates[math.random(1, #candidates)]
             pcall(function()
-                TeleportService:TeleportToPlaceInstance(placeId, target.id, LocalPlayer)
+                TeleportService:TeleportToPlaceInstance(placeId, targetSrv.id, LocalPlayer)
             end)
             return
         end
-
         task.wait(3 + attempt * 1.5)
     end
-    warn("Server hop failed after 6 attempts")
 end
 
--- =======================
--- Main Loop
--- =======================
+-- Main Heartbeat Loop
 RunService.Heartbeat:Connect(function()
-    -- Auto Server Hop
+    -- Server Hop
     if AutoServerHopEnabled and (os.clock() - LastServerHop) >= ServerHopInterval then
         LastServerHop = os.clock()
         task.spawn(ServerHop)
     end
 
-    -- Night Time Refresh
-    if AutoSetNightTimeEnabled and math.floor(os.clock()) % 5 == 0 then
-        setNightTime()
-    end
+    -- Night & Hitbox refresh
+    if AutoSetNightTimeEnabled and math.floor(os.clock()) % 5 == 0 then setNightTime() end
+    if AutoBigHitboxEnabled and math.floor(os.clock() * 10) % 3 == 0 then setBigHitbox() end
 
-    -- Big Hitbox Refresh
-    if AutoBigHitboxEnabled and math.floor(os.clock() * 10) % 3 == 0 then
-        setBigHitbox()
-    end
-
-    -- Position Lock
-    if AutoLockPositionEnabled then
-        if positionLockAlignPos then
-            positionLockAlignPos.Position = gymPos
-        end
-        -- Fallback position force
+    -- Aggressive Position Lock
+    if AutoLockPositionEnabled and HRP then
+        if positionLockAlignPos then positionLockAlignPos.Position = gymPos end
         if math.floor(os.clock() * 20) % 3 == 0 then
-            local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                hrp.CFrame = CFrame.new(gymPos) * hrp.CFrame.Rotation
-            end
+            HRP.CFrame = CFrame.new(gymPos) * HRP.CFrame.Rotation
         end
     end
-end)
 
--- =======================
--- Animation & Punch Blocking (Kept as requested)
--- =======================
-spawn(function()
-    local blockedAnimations = {
-        ["rbxassetid://3638729053"] = true,
-        ["rbxassetid://3638767427"] = true,
-    }
+    UpdateAll()
 
-    local function setupAnimationBlocking()
-        local char = LocalPlayer.Character
-        if not char or not char:FindFirstChild("Humanoid") then return end
+    if not Character or not Humanoid or Humanoid.Health <= 0 then return end
 
-        local humanoid = char.Humanoid
+    -- Equip Punch
+    if not Punch then
+        local tool = LocalPlayer.Backpack:FindFirstChild("Punch")
+        if tool and Humanoid then Humanoid:EquipTool(tool) end
+        return
+    end
 
-        for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
-            if track.Animation then
-                local animId = track.Animation.AnimationId
-                local name = track.Name:lower()
-                if blockedAnimations[animId] or name:match("punch") or name:match("attack") or name:match("right") then
-                    track:Stop()
+    -- Auto Punch
+    if AutoFarmEnabled and (os.clock() - LastAttack) >= 0.07 then
+        LastAttack = os.clock()
+        local attackTime = Punch:FindFirstChild("attackTime")
+        if attackTime then attackTime.Value = 0 end
+        Punch:Activate()
+    end
+
+    -- Auto Good Karma: Only target players with more Evil than Good Karma
+    if AutoGoodKarmaEnabled then
+        for _, target in ipairs(Players:GetPlayers()) do
+            if target == LocalPlayer then continue end
+
+            local evilK = target:FindFirstChild("evilKarma")
+            local goodK = target:FindFirstChild("goodKarma")
+            if not (evilK and goodK and evilK:IsA("IntValue") and goodK:IsA("IntValue")) then continue end
+            if evilK.Value <= goodK.Value then continue end  -- Skip non-evil players
+
+            local tChar = target.Character
+            if not tChar then continue end
+
+            local tHRP = tChar:FindFirstChild("HumanoidRootPart")
+            local tHead = tChar:FindFirstChild("Head")
+            local tHum = tChar:FindFirstChildOfClass("Humanoid")
+
+            if tHum and tHum.Health > 0 and (tHRP or tHead) then
+                local hand = Character:FindFirstChild("RightHand") or Character:FindFirstChild("LeftHand") or Character:FindFirstChild("Left Arm")
+                if hand then
+                    if tHRP then
+                        firetouchinterest(hand, tHRP, 0)
+                        task.wait()
+                        firetouchinterest(hand, tHRP, 1)
+                    end
+                    if tHead then
+                        firetouchinterest(hand, tHead, 0)
+                        task.wait()
+                        firetouchinterest(hand, tHead, 1)
+                    end
                 end
             end
         end
     end
-
-    -- Monitor animations
-    if not _G.AnimMonitorConnection then
-        _G.AnimMonitorConnection = RunService.Heartbeat:Connect(function()
-            if tick() % 0.5 < 0.01 then
-                setupAnimationBlocking()
-            end
-        end)
-    end
-
-    -- Tool override
-    local function processTool(tool)
-        if not tool or not tool:IsA("Tool") then return end
-        if (tool.Name:match("Punch") or tool.Name:match("Attack") or tool.Name:match("Right")) 
-            and not tool:GetAttribute("ActivatedOverride") then
-
-            tool:SetAttribute("ActivatedOverride", true)
-            tool.Activated:Connect(function()
-                task.wait(0.05)
-                setupAnimationBlocking()
-            end)
-        end
-    end
-
-    -- Initial setup
-    for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
-        processTool(tool)
-    end
-
-    LocalPlayer.Backpack.ChildAdded:Connect(function(child)
-        task.wait(0.1)
-        processTool(child)
-    end)
-
-    if LocalPlayer.Character then
-        for _, child in pairs(LocalPlayer.Character:GetChildren()) do
-            processTool(child)
-        end
-    end
-
-    LocalPlayer.Character.ChildAdded:Connect(function(child)
-        task.wait(0.1)
-        processTool(child)
-    end)
 end)
 
-print("Invincible Kill Farm Loaded Successfully!")
+print("✅ Invincible Good Karma Farm Fully Loaded!")
+print("→ Only kills players with high Evil Karma to gain Good Karma")
+print("→ Big Hitbox + Position Lock + Night Time active")
