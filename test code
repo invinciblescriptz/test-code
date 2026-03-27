@@ -1,3 +1,8 @@
+-- =============================================
+-- Invincible Good Karma Farm - Full Version
+-- Only kills evil players to gain Good Karma
+-- =============================================
+
 -- UI Library
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library"))()
 local window = library:AddWindow("Invincible Good Karma Farm", {
@@ -20,7 +25,7 @@ local AutoLockPositionEnabled = true
 local AutoSetNightTimeEnabled = true
 local AutoBigHitboxEnabled = true
 
--- UI Toggles
+-- UI Toggles & Slider
 mainTabData:AddSwitch("Auto Punch (Farm)", function(state) AutoFarmEnabled = state end):Set(true)
 mainTabData:AddSwitch("Auto Good Karma (Kill Evil Only)", function(state) AutoGoodKarmaEnabled = state end):Set(true)
 mainTabData:AddSwitch("Auto Server Hop", function(state) AutoServerHopEnabled = state end):Set(true)
@@ -42,21 +47,20 @@ mainTabData:AddSwitch("Auto Big Hitbox", function(state)
     if not state then resetHitbox() end
 end):Set(true)
 
--- Gym Location
+-- Gym location
 local gymCFrame = CFrame.new(-8625.93262, 17.2325287, -5730.47217, 0.765763462, -1.84813775e-09, 0.643122315, -1.32089262e-09, 1, 4.44647785e-09, -0.643122315, -4.25444568e-09, 0.765763462)
 local gymPos = gymCFrame.Position
 
-mainTabData:AddButton("TP to Muscle King Gym", function()
+mainTabData:AddButton("TP Muscle King Gym (Manual)", function()
     local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if hrp then hrp.CFrame = gymCFrame end
 end)
+mainTabData:AddButton("Set Night Time (Manual)", setNightTime)
 
-mainTabData:AddButton("Set Night Time", function() setNightTime() end)
-
--- Credits
+-- Credits Tab
 local creditsTab = window:AddTab("Credits")
-creditsTab:AddLabel("Made by Invincible")
-creditsTab:AddLabel("Discord: https://discord.gg/bUythM4H")
+creditsTab:AddLabel("made by Invincible")
+creditsTab:AddLabel("https://discord.gg/bUythM4H")
 
 -- Services
 local Players         = game:GetService("Players")
@@ -74,7 +78,6 @@ local LastServerHop = os.clock()
 
 -- Position Lock
 local positionLockAlignPos, positionLockAttachment
-
 local function clearPositionLock()
     if positionLockAlignPos then positionLockAlignPos:Destroy() positionLockAlignPos = nil end
     if positionLockAttachment then positionLockAttachment:Destroy() positionLockAttachment = nil end
@@ -108,16 +111,17 @@ end
 -- Hitbox
 local TARGET_HITBOX_SIZE = Vector3.new(25, 25, 25)
 local function setBigHitbox()
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
     if hrp then hrp.Size = TARGET_HITBOX_SIZE end
 end
-
 local function resetHitbox()
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
     if hrp then hrp.Size = Vector3.new(2, 2, 1) end
 end
 
--- Character Update
+-- Character vars
 local Character, Humanoid, Punch, HRP
 local LastAttack = 0
 
@@ -132,14 +136,25 @@ end
 LocalPlayer.CharacterAdded:Connect(function()
     task.wait(2)
     UpdateAll()
-    if AutoTPKingGymEnabled and HRP then HRP.CFrame = gymCFrame end
-    if AutoLockPositionEnabled then task.wait(0.5); setupPositionLock() end
-    if AutoSetNightTimeEnabled then setNightTime() end
+    if AutoTPKingGymEnabled and HRP then
+        HRP.CFrame = gymCFrame
+        task.wait(0.5)
+    end
+    if AutoLockPositionEnabled then
+        task.wait(0.5)
+        setupPositionLock()
+    end
+    if AutoSetNightTimeEnabled then
+        task.wait(0.3)
+        setNightTime()
+    end
     if AutoBigHitboxEnabled then
-        task.spawn(function() task.wait(0.8); setBigHitbox() end)
+        task.spawn(function()
+            task.wait(0.8)
+            setBigHitbox()
+        end)
     end
 end)
-
 UpdateAll()
 
 -- Anti-AFK
@@ -148,13 +163,15 @@ LocalPlayer.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Server Hop
+-- Improved Server Hop
 local function ServerHop()
     local placeId = game.PlaceId
     local myJobId = game.JobId
     for attempt = 1, 6 do
         local success, response = pcall(function()
-            return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Desc&limit=100"))
+            return HttpService:JSONDecode(game:HttpGet(
+                "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Desc&limit=100"
+            ))
         end)
         if not success or not response or not response.data then
             task.wait(2 + attempt)
@@ -163,24 +180,27 @@ local function ServerHop()
         local candidates = {}
         for _, srv in response.data do
             if srv.id == myJobId then continue end
-            if srv.playing >= srv.maxPlayers or srv.playing < 8 then continue end
+            if srv.playing >= srv.maxPlayers then continue end
+            if srv.playing < 8 then continue end
             local fill = srv.playing / srv.maxPlayers
             if fill > 0.25 and fill < 0.9 then
                 table.insert(candidates, srv)
             end
         end
-        if #candidates > 0 then
-            local targetSrv = candidates[math.random(1, #candidates)]
-            pcall(function()
-                TeleportService:TeleportToPlaceInstance(placeId, targetSrv.id, LocalPlayer)
-            end)
-            return
+        if #candidates == 0 then
+            task.wait(3 + attempt * 1.5)
+            continue
         end
-        task.wait(3 + attempt * 1.5)
+        local target = candidates[math.random(1, #candidates)]
+        pcall(function()
+            TeleportService:TeleportToPlaceInstance(placeId, target.id, LocalPlayer)
+        end)
+        task.wait(5 + attempt * 2)
     end
+    warn("Server hop exhausted attempts")
 end
 
--- Main Heartbeat Loop
+-- Main Loop
 RunService.Heartbeat:Connect(function()
     -- Server Hop
     if AutoServerHopEnabled and (os.clock() - LastServerHop) >= ServerHopInterval then
@@ -188,26 +208,33 @@ RunService.Heartbeat:Connect(function()
         task.spawn(ServerHop)
     end
 
-    -- Night & Hitbox refresh
-    if AutoSetNightTimeEnabled and math.floor(os.clock()) % 5 == 0 then setNightTime() end
-    if AutoBigHitboxEnabled and math.floor(os.clock() * 10) % 3 == 0 then setBigHitbox() end
+    -- Night refresh
+    if AutoSetNightTimeEnabled and math.floor(os.clock()) % 5 == 0 then
+        setNightTime()
+    end
 
-    -- Aggressive Position Lock
+    -- Hitbox refresh
+    if AutoBigHitboxEnabled and math.floor(os.clock() * 10) % 3 == 0 then
+        setBigHitbox()
+    end
+
+    -- Aggressive position lock
     if AutoLockPositionEnabled and HRP then
-        if positionLockAlignPos then positionLockAlignPos.Position = gymPos end
+        if positionLockAlignPos then
+            positionLockAlignPos.Position = gymPos
+        end
         if math.floor(os.clock() * 20) % 3 == 0 then
             HRP.CFrame = CFrame.new(gymPos) * HRP.CFrame.Rotation
         end
     end
 
     UpdateAll()
-
     if not Character or not Humanoid or Humanoid.Health <= 0 then return end
 
     -- Equip Punch
     if not Punch then
         local tool = LocalPlayer.Backpack:FindFirstChild("Punch")
-        if tool and Humanoid then Humanoid:EquipTool(tool) end
+        if tool then Humanoid:EquipTool(tool) end
         return
     end
 
@@ -219,15 +246,15 @@ RunService.Heartbeat:Connect(function()
         Punch:Activate()
     end
 
-    -- Auto Good Karma: Only target players with more Evil than Good Karma
+    -- Auto Good Karma: ONLY target evil players
     if AutoGoodKarmaEnabled then
         for _, target in ipairs(Players:GetPlayers()) do
             if target == LocalPlayer then continue end
 
-            local evilK = target:FindFirstChild("evilKarma")
-            local goodK = target:FindFirstChild("goodKarma")
-            if not (evilK and goodK and evilK:IsA("IntValue") and goodK:IsA("IntValue")) then continue end
-            if evilK.Value <= goodK.Value then continue end  -- Skip non-evil players
+            local evilKarma = target:FindFirstChild("evilKarma")
+            local goodKarma = target:FindFirstChild("goodKarma")
+            if not (evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue")) then continue end
+            if evilKarma.Value <= goodKarma.Value then continue end  -- Skip if not evil
 
             local tChar = target.Character
             if not tChar then continue end
@@ -239,11 +266,13 @@ RunService.Heartbeat:Connect(function()
             if tHum and tHum.Health > 0 and (tHRP or tHead) then
                 local hand = Character:FindFirstChild("RightHand") or Character:FindFirstChild("LeftHand") or Character:FindFirstChild("Left Arm")
                 if hand then
+                    -- Touch RootPart
                     if tHRP then
                         firetouchinterest(hand, tHRP, 0)
                         task.wait()
                         firetouchinterest(hand, tHRP, 1)
                     end
+                    -- Touch Head (better kill registration)
                     if tHead then
                         firetouchinterest(hand, tHead, 0)
                         task.wait()
@@ -255,6 +284,111 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("✅ Invincible Good Karma Farm Fully Loaded!")
-print("→ Only kills players with high Evil Karma to gain Good Karma")
-print("→ Big Hitbox + Position Lock + Night Time active")
+print("✅ Invincible Good Karma Farm Fully Loaded! (400+ lines)")
+print("→ Only attacks evil players → You gain Good Karma on kills")
+print("→ Big Hitbox + Gym Lock + Night Time active")
+
+-- =============================================
+-- Muscle Legends Kill Counter UI (Original)
+-- =============================================
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local leaderstats = player:WaitForChild("leaderstats")
+local killsValue = leaderstats:WaitForChild("Kills")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "KillCounterUI"
+screenGui.Parent = playerGui
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local frame = Instance.new("Frame")
+frame.Name = "MainFrame"
+frame.Size = UDim2.new(0, 250, 0, 80)
+frame.Position = UDim2.new(1, -270, 0, 20)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12)
+uiCorner.Parent = frame
+
+local uiGradient = Instance.new("UIGradient")
+uiGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+}
+uiGradient.Rotation = 45
+uiGradient.Parent = frame
+
+local uiStroke = Instance.new("UIStroke")
+uiStroke.Color = Color3.fromRGB(255, 215, 0)
+uiStroke.Thickness = 2
+uiStroke.Parent = frame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, 0, 0, 30)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "💪 KILLS"
+titleLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Parent = frame
+
+local killsLabel = Instance.new("TextLabel")
+killsLabel.Name = "KillsLabel"
+killsLabel.Size = UDim2.new(1, 0, 0, 40)
+killsLabel.Position = UDim2.new(0, 0, 0, 30)
+killsLabel.BackgroundTransparency = 1
+killsLabel.Text = "0"
+killsLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+killsLabel.TextScaled = true
+killsLabel.Font = Enum.Font.GothamBlack
+killsLabel.Parent = frame
+
+local function formatNumber(num)
+    return tostring(num):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
+end
+
+local function updateKills()
+    local formattedKills = formatNumber(killsValue.Value)
+    killsLabel.Text = formattedKills
+    local tween = TweenService:Create(killsLabel, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0.5})
+    tween:Play()
+    tween.Completed:Connect(function()
+        local tween2 = TweenService:Create(killsLabel, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0})
+        tween2:Play()
+    end)
+end
+
+killsValue.Changed:Connect(updateKills)
+updateKills()
+
+-- Make draggable
+local dragging = false
+local dragStart, startPos
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+end)
+frame.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+print("Muscle Legends Kill Counter UI loaded! 💀")
