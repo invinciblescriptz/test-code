@@ -435,6 +435,8 @@ local autoTeleportSwitch = rebirthTab:AddSwitch("Auto Teleport to Muscle King", 
 rebirth:AddLabel("Pack Farming").TextSize = 24
 
 
+
+
 -- ⏩ Configuración avanzada
 local function getPing()
     local success, ping = pcall(function()
@@ -772,4 +774,3 @@ rebirthTab:AddSwitch("Eat Egg (30 Min)", function(state)
     autoEatEgg30 = state
     print(state and "[AutoEgg] Activado." or "[AutoEgg] Desactivado.")
 end)
-
