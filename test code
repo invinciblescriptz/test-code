@@ -123,7 +123,6 @@ end
 
 -- Tabs
 local mainTab = window:AddTab("Main")
-local rebirthTab = window:AddTab("Rebirth")
 local teleportTab = window:AddTab("Teleport")
 
 -- Tools Folder
@@ -307,43 +306,7 @@ task.spawn(function()
     end
 end)
 
-
-task.spawn(function()
-    while getgenv().NexusRunning do
-        pcall(function()
-            local lp = game.Players.LocalPlayer
-            local leaderstats = lp:FindFirstChild("leaderstats")
-            if leaderstats then
-                for _, stat in ipairs(leaderstats:GetChildren()) do
-                    if stat:IsA("IntValue") or stat:IsA("NumberValue") then
-                        addOrUpdateStatLabel(stat.Name, stat.Value)
-                    end
-                end
-            end
-            local durability = lp:FindFirstChild("Durability")
-            if durability and durability:IsA("IntValue") then
-                addOrUpdateStatLabel("Durability", durability.Value)
-            end
-            local strength = lp:FindFirstChild("Strength") or (leaderstats and leaderstats:FindFirstChild("Strength"))
-            if strength and (strength:IsA("IntValue") or strength:IsA("NumberValue")) then
-                addOrUpdateStatLabel("Strength", strength.Value)
-            end
-            local owned = lp:FindFirstChild("ownedGamepasses")
-            if owned then
-                addOrUpdateStatLabel("Gamepasses Owned", #owned:GetChildren())
-            end
-            local currentArea = lp:FindFirstChild("CurrentArea") or lp:FindFirstChild("Zone")
-            if currentArea and currentArea:IsA("StringValue") then
-                addOrUpdateStatLabel("Area", currentArea.Value)
-            end
-        end)
-        task.wait(1.4)
-    end
-    -- Cleanup
-    for _, lbl in pairs(statLabels) do
-        pcall(function() lbl:Destroy() end)
-    end
-end)
+local rebirthTab = window:AddTab("Rebirth")
 
 -- Lock Position / Rebirth Control in Farming tab
 local lockEnabled = false
@@ -433,8 +396,6 @@ local autoTeleportSwitch = rebirthTab:AddSwitch("Auto Teleport to Muscle King", 
 })
 
 rebirth:AddLabel("Pack Farming").TextSize = 24
-
-
 
 
 -- ⏩ Configuración avanzada
@@ -774,3 +735,4 @@ rebirthTab:AddSwitch("Eat Egg (30 Min)", function(state)
     autoEatEgg30 = state
     print(state and "[AutoEgg] Activado." or "[AutoEgg] Desactivado.")
 end)
+
