@@ -10,8 +10,41 @@ local window = library:AddWindow("Invincible Kill Farm", {
 -- Main Tab
 local mainTabData, mainTab = window:AddTab("Main")
 
--- Toggle Auto Bad Karma
-mainTab:AddSwitch("Auto Bad Karma", function(bool)
+-- Variables
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local autoBadKarma = false
+local autoFarm = true
+local autoServerHop = true
+local serverHopInterval = 30
+local killOnlyWeaker = true
+local autoTPKingGym = true
+local autoLockPosition = true
+local autoSetNight = true
+local autoBigHitbox = true
+local LastServerHop = os.clock()
+
+-- Load UI Toggles & Slider
+mainTabData:AddSwitch("Auto Farm", function(state) autoFarm = state end):Set(true)
+mainTabData:AddSwitch("Auto Server Hop", function(state) autoServerHop = state end):Set(true)
+mainTabData:AddSlider("Hop Interval (s)", function(value) serverHopInterval = value end, {min = 5, max = 120}):Set(30)
+mainTabData:AddSwitch("Kill Only Weaker", function(state) killOnlyWeaker = state end):Set(true)
+mainTabData:AddSwitch("Auto TP Muscle King Gym", function(state) autoTPKingGym = state end):Set(true)
+mainTabData:AddSwitch("Auto Lock Position", function(state)
+    autoLockPosition = state
+    if state then setupPositionLock() else clearPositionLock() end
+end):Set(true)
+mainTabData:AddSwitch("Auto Set Night Time", function(state)
+    autoSetNight = state
+    if state then setNightTime() end
+end):Set(true)
+mainTabData:AddSwitch("Auto Big Hitbox", function(state)
+    autoBigHitbox = state
+    if not state then resetHitbox() end
+end):Set(true)
+
+-- "Auto Bad Karma" Switch
+mainTabData:AddSwitch("Auto Bad Karma", function(bool)
     autoBadKarma = bool
     task.spawn(function()
         while autoBadKarma do
@@ -40,35 +73,6 @@ mainTab:AddSwitch("Auto Bad Karma", function(bool)
     end)
 end)
 
--- Settings Variables
-local AutoFarmEnabled = true
-local AutoServerHopEnabled = true
-local ServerHopInterval = 30
-local KillOnlyWeakerEnabled = true
-local AutoTPKingGymEnabled = true
-local AutoLockPositionEnabled = true
-local AutoSetNightTimeEnabled = true
-local AutoBigHitboxEnabled = true
-
--- UI Toggles & Slider
-mainTabData:AddSwitch("Auto Farm", function(state) AutoFarmEnabled = state end):Set(true)
-mainTabData:AddSwitch("Auto Server Hop", function(state) AutoServerHopEnabled = state end):Set(true)
-mainTabData:AddSlider("Hop Interval (s)", function(value) ServerHopInterval = value end, {min = 5, max = 120}):Set(30)
-mainTabData:AddSwitch("Kill Only Weaker", function(state) KillOnlyWeakerEnabled = state end):Set(true)
-mainTabData:AddSwitch("Auto TP Muscle King Gym", function(state) AutoTPKingGymEnabled = state end):Set(true)
-mainTabData:AddSwitch("Auto Lock Position", function(state)
-    AutoLockPositionEnabled = state
-    if state then setupPositionLock() else clearPositionLock() end
-end):Set(true)
-mainTabData:AddSwitch("Auto Set Night Time", function(state)
-    AutoSetNightTimeEnabled = state
-    if state then setNightTime() end
-end):Set(true)
-mainTabData:AddSwitch("Auto Big Hitbox", function(state)
-    AutoBigHitboxEnabled = state
-    if not state then resetHitbox() end
-end):Set(true)
-
 -- Gym location setup
 local gymCFrame = CFrame.new(-2623.21777, 233.419388, -409.055267, 0.0130337765, 4.06644531e-08, 0.999915063, -5.63387496e-11, 1, -4.0667171e-08, -0.999915063, 4.73712847e-10, 0.0130337765)
 local gymPos = gymCFrame.Position
@@ -86,18 +90,11 @@ creditsTab:AddLabel("made by Invincible")
 creditsTab:AddLabel("https://discord.gg/bUythM4H")
 
 -- Services
-local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local Lighting = game:GetService("Lighting")
-local LocalPlayer = Players.LocalPlayer
-
-if getgenv().AutoKillLoaded then return end
-getgenv().AutoKillLoaded = true
-
-local LastServerHop = os.clock()
 
 -- Position Lock Variables
 local positionLockAlignPos, positionLockAttachment
@@ -179,7 +176,7 @@ local function GetTargetHealth(target)
 end
 
 local function ShouldKillPlayer(target)
-    if not KillOnlyWeakerEnabled then return true end
+    if not killOnlyWeaker then return true end
     local myDmg = GetLocalPlayerDamage()
     local theirHP = GetTargetHealth(target)
     return math.ceil(theirHP / myDmg) <= 5
@@ -201,19 +198,19 @@ end
 LocalPlayer.CharacterAdded:Connect(function()
     task.wait(2)
     UpdateAll()
-    if AutoTPKingGymEnabled and HRP then
+    if autoTPKingGym and HRP then
         HRP.CFrame = gymCFrame
         task.wait(0.5)
     end
-    if AutoLockPositionEnabled then
+    if autoLockPosition then
         task.wait(0.5)
         setupPositionLock()
     end
-    if AutoSetNightTimeEnabled then
+    if autoSetNight then
         task.wait(0.3)
         setNightTime()
     end
-    if AutoBigHitboxEnabled then
+    if autoBigHitbox then
         task.spawn(function()
             task.wait(0.8)
             setBigHitbox()
@@ -280,23 +277,23 @@ end
 -- Main Loop
 RunService.Heartbeat:Connect(function()
     -- Server Hop
-    if AutoServerHopEnabled and (os.clock() - LastServerHop) >= ServerHopInterval then
+    if autoServerHop and (os.clock() - LastServerHop) >= serverHopInterval then
         LastServerHop = os.clock()
         task.spawn(ServerHop)
     end
 
     -- Auto Night Time
-    if AutoSetNightTimeEnabled and math.floor(os.clock()) % 5 == 0 then
+    if autoSetNight and math.floor(os.clock()) % 5 == 0 then
         setNightTime()
     end
 
     -- Auto Big Hitbox
-    if AutoBigHitboxEnabled and math.floor(os.clock() * 10) % 3 == 0 then
+    if autoBigHitbox and math.floor(os.clock() * 10) % 3 == 0 then
         setBigHitbox()
     end
 
     -- Auto Lock Position
-    if AutoLockPositionEnabled and HRP then
+    if autoLockPosition and HRP then
         if positionLockAlignPos then
             positionLockAlignPos.Position = gymPos
         end
@@ -307,7 +304,7 @@ RunService.Heartbeat:Connect(function()
 
     UpdateAll()
 
-    if not AutoFarmEnabled or not Character or not Humanoid or Humanoid.Health <= 0 then return end
+    if not autoFarm or not Character or not Humanoid or Humanoid.Health <= 0 then return end
     if not Punch then
         local tool = LocalPlayer.Backpack:FindFirstChild("Punch")
         if tool then Humanoid:EquipTool(tool) end
@@ -344,9 +341,9 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("Invincible Kill Farm Loaded! | Night: " .. (AutoSetNightTimeEnabled and "ON" or "OFF") .. " | Big Hitbox: " .. (AutoBigHitboxEnabled and "ON" or "OFF") .. " | Hop Interval: " .. ServerHopInterval .. "s")
+print("Invincible Kill Farm Loaded! | Night: " .. (autoSetNight and "ON" or "OFF") .. " | Big Hitbox: " .. (autoBigHitbox and "ON" or "OFF") .. " | Hop Interval: " .. serverHopInterval .. "s")
 
--- Evil Karma Counter UI
+-- Evil Karma Counter UI Setup
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
@@ -412,7 +409,7 @@ buttonFrame.Position = UDim2.new(0, 20, 0, 170)
 buttonFrame.BackgroundTransparency = 1
 buttonFrame.Parent = mainFrame
 
--- +1 Button
+-- +1 EVIL KILL Button
 local plusButton = Instance.new("TextButton")
 plusButton.Size = UDim2.new(0.48, 0, 1, 0)
 plusButton.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
@@ -426,7 +423,7 @@ local plusCorner = Instance.new("UICorner")
 plusCorner.CornerRadius = UDim.new(0, 8)
 plusCorner.Parent = plusButton
 
--- -1 Button
+-- -1 EVIL KILL Button
 local minusButton = Instance.new("TextButton")
 minusButton.Size = UDim2.new(0.48, 0, 1, 0)
 minusButton.Position = UDim2.new(0.52, 0, 0, 0)
