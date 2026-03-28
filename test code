@@ -9,8 +9,8 @@ local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
-local autoTargetEvil = true      -- Only target players with higher evilKarma (old system)
-local autoBadKarma = true        -- NEW: Target players with higher goodKarma (makes you gain bad karma)
+local autoTargetEvil = true
+local autoBadKarma = true        -- Target players with higher goodKarma to gain bad karma
 local autoFarm = true
 local autoServerHop = true
 local serverHopInterval = 30
@@ -18,6 +18,7 @@ local autoTPKingGym = true
 local autoLockPosition = true
 local autoSetNight = true
 local autoBigHitbox = true
+local autoEquipPunch = true      -- FIXED: Now properly enabled
 
 local LastServerHop = os.clock()
 
@@ -83,7 +84,7 @@ local function resetHitbox()
     end
 end
 
--- Get stat value (leaderstats or attributes)
+-- Get stat value
 local function GetPlayerStatValue(plr, statNames)
     if not plr then return nil end
     if type(statNames) == "string" then statNames = {statNames} end
@@ -125,6 +126,81 @@ LocalPlayer.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
+-- ====================== AUTO EQUIP PUNCH (FIXED) ======================
+local equipConnection
+
+local function StartAutoEquipPunch()
+    if equipConnection then return end
+    
+    equipConnection = task.spawn(function()
+        while autoEquipPunch do
+            local char = LocalPlayer.Character
+            if char then
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                local punchInCharacter = char:FindFirstChild("Punch")
+                local punchInBackpack = LocalPlayer.Backpack:FindFirstChild("Punch")
+
+                if humanoid and not punchInCharacter and punchInBackpack then
+                    humanoid:EquipTool(punchInBackpack)
+                end
+            end
+            task.wait(0.15)
+        end
+    end)
+end
+
+local function StopAutoEquipPunch()
+    autoEquipPunch = false
+    if equipConnection then
+        task.cancel(equipConnection)
+        equipConnection = nil
+    end
+end
+
+-- ====================== AUTO BAD KARMA ======================
+local badKarmaConnection
+
+local function StartAutoBadKarma()
+    if badKarmaConnection then return end
+
+    badKarmaConnection = task.spawn(function()
+        while autoBadKarma do
+            local data = UpdateCharacter()
+            if data and data.RightHand and data.LeftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target == LocalPlayer then continue end
+
+                    local evilKarma = target:FindFirstChild("evilKarma")
+                    local goodKarma = target:FindFirstChild("goodKarma")
+
+                    if evilKarma and goodKarma 
+                       and evilKarma:IsA("IntValue") 
+                       and goodKarma:IsA("IntValue") 
+                       and goodKarma.Value > evilKarma.Value then
+
+                        local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                        if rootPart then
+                            firetouchinterest(data.RightHand, rootPart, 0)
+                            firetouchinterest(data.LeftHand, rootPart, 0)
+                            task.wait()
+                            firetouchinterest(data.RightHand, rootPart, 1)
+                            firetouchinterest(data.LeftHand, rootPart, 1)
+                        end
+                    end
+                end
+            end
+            task.wait(0.01)
+        end
+    end)
+end
+
+local function StopAutoBadKarma()
+    if badKarmaConnection then
+        task.cancel(badKarmaConnection)
+        badKarmaConnection = nil
+    end
+end
+
 -- Character Added Handler
 LocalPlayer.CharacterAdded:Connect(function()
     task.wait(1.5)
@@ -148,6 +224,11 @@ LocalPlayer.CharacterAdded:Connect(function()
 
     if autoBigHitbox then
         task.delay(0.8, setBigHitbox)
+    end
+
+    if autoEquipPunch then
+        task.wait(0.5)
+        StartAutoEquipPunch()
     end
 end)
 
@@ -192,68 +273,6 @@ local function ServerHop()
     warn("Server hop: No suitable servers found")
 end
 
--- ====================== AUTO BAD KARMA ======================
-local badKarmaConnection
-
-local function StartAutoBadKarma()
-    if badKarmaConnection then return end
-
-    badKarmaConnection = task.spawn(function()
-        while autoBadKarma do
-            local data = UpdateCharacter()
-            if data and data.RightHand and data.LeftHand then
-                for _, target in ipairs(Players:GetPlayers()) do
-                    if target == LocalPlayer then continue end
-
-                    local evilKarma = target:FindFirstChild("evilKarma")
-                    local goodKarma = target:FindFirstChild("goodKarma")
-
-                    if evilKarma and goodKarma 
-                       and evilKarma:IsA("IntValue") 
-                       and goodKarma:IsA("IntValue") 
-                       and goodKarma.Value > evilKarma.Value then
-
-                        local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
-                        if rootPart then
-                            -- Touch both hands
-                            firetouchinterest(data.RightHand, rootPart, 0)
-                            firetouchinterest(data.LeftHand, rootPart, 0)
-                            task.wait()
-                            firetouchinterest(data.RightHand, rootPart, 1)
-                            firetouchinterest(data.LeftHand, rootPart, 1)
-                        end
-                    end
-                end
-            end
-            task.wait(0.01)
-        end
-    end)
-end
-
-local function StopAutoBadKarma()
-    autoBadKarma = false
-    if badKarmaConnection then
-        task.cancel(badKarmaConnection)
-        badKarmaConnection = nil
-    end
-end
-
--- ====================== Auto Equip Punch Toggle ======================
-local autoEquipPunch = false
-
-function toggleAutoEquipPunch(state)
-    autoEquipPunch = state
-    task.spawn(function()
-        while autoEquipPunch do
-            local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
-            if punch then
-                punch.Parent = LocalPlayer.Character
-            end
-            task.wait(0.1)
-        end
-    end)
-end
-
 -- ====================== MAIN LOOP ======================
 RunService.Heartbeat:Connect(function()
     -- Auto Server Hop
@@ -288,19 +307,15 @@ RunService.Heartbeat:Connect(function()
     local data = UpdateCharacter()
     if not data or not data.Humanoid or data.Humanoid.Health <= 0 then return end
 
-    -- Equip Punch tool
-    if not data.Punch and data.Punch == nil then
-        local tool = LocalPlayer.Backpack:FindFirstChild("Punch")
-        if tool then
-            data.Humanoid:EquipTool(tool)
+    -- Ensure Punch is equipped (backup check)
+    if autoEquipPunch then
+        if not data.Punch or (data.Character and not data.Character:FindFirstChild("Punch")) then
+            StartAutoEquipPunch()
         end
-        return
     end
 
-    -- Auto Bad Karma (replaces old kill code)
+    -- Auto Bad Karma
     if autoBadKarma then
-        -- The loop is already running in its own task.spawn
-        -- We just ensure it's started
         if not badKarmaConnection then
             StartAutoBadKarma()
         end
@@ -309,11 +324,14 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- Initial setup
+-- ====================== INITIAL SETUP ======================
 task.wait(2)
-local initialData = UpdateCharacter()
-if initialData and initialData.HRP and autoTPKingGym then
-    initialData.HRP.CFrame = gymCFrame
+
+if autoTPKingGym then
+    local data = UpdateCharacter()
+    if data and data.HRP then
+        data.HRP.CFrame = gymCFrame
+    end
 end
 
 if autoLockPosition then
@@ -328,8 +346,12 @@ if autoBigHitbox then
     setBigHitbox()
 end
 
+if autoEquipPunch then
+    StartAutoEquipPunch()
+end
+
 if autoBadKarma then
     StartAutoBadKarma()
 end
 
-print("Script loaded successfully - Auto Bad Karma enabled")
+print("✅ Script loaded successfully - Auto Bad Karma + Auto Equip Punch enabled")
