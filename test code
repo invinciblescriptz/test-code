@@ -10,7 +10,7 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
 local autoTargetEvil = true
-local autoBadKarma = true        -- Target players with higher goodKarma to gain bad karma
+local autoBadKarma = true
 local autoFarm = true
 local autoServerHop = true
 local serverHopInterval = 30
@@ -18,7 +18,10 @@ local autoTPKingGym = true
 local autoLockPosition = true
 local autoSetNight = true
 local autoBigHitbox = true
-local autoEquipPunch = true      -- FIXED: Now properly enabled
+local autoEquipPunch = true
+
+-- NEW: Fast Hit Feature
+_G.fastHitActive = true   -- Set to true by default
 
 local LastServerHop = os.clock()
 
@@ -76,14 +79,6 @@ local function setBigHitbox()
     end
 end
 
-local function resetHitbox()
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.Size = Vector3.new(2, 2, 1)
-    end
-end
-
 -- Get stat value
 local function GetPlayerStatValue(plr, statNames)
     if not plr then return nil end
@@ -126,7 +121,7 @@ LocalPlayer.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- ====================== AUTO EQUIP PUNCH (FIXED) ======================
+-- ====================== AUTO EQUIP PUNCH ======================
 local equipConnection
 
 local function StartAutoEquipPunch()
@@ -154,6 +149,50 @@ local function StopAutoEquipPunch()
     if equipConnection then
         task.cancel(equipConnection)
         equipConnection = nil
+    end
+end
+
+-- ====================== FAST HIT (NEW) ======================
+local fastHitConnection1, fastHitConnection2
+
+local function StartFastHit()
+    if fastHitConnection1 or fastHitConnection2 then return end
+
+    -- Fast Hit - Move to Character + Set attackTime to 0
+    fastHitConnection1 = task.spawn(function()
+        while _G.fastHitActive do
+            local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+            if punch then
+                punch.Parent = LocalPlayer.Character
+                if punch:FindFirstChild("attackTime") then
+                    punch.attackTime.Value = 0
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
+
+    -- Fast Hit - Auto Activate Punch
+    fastHitConnection2 = task.spawn(function()
+        while _G.fastHitActive do
+            local punch = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Punch")
+            if punch then
+                punch:Activate()
+            end
+            task.wait(0.1)
+        end
+    end)
+end
+
+local function StopFastHit()
+    _G.fastHitActive = false
+    if fastHitConnection1 then
+        task.cancel(fastHitConnection1)
+        fastHitConnection1 = nil
+    end
+    if fastHitConnection2 then
+        task.cancel(fastHitConnection2)
+        fastHitConnection2 = nil
     end
 end
 
@@ -229,6 +268,11 @@ LocalPlayer.CharacterAdded:Connect(function()
     if autoEquipPunch then
         task.wait(0.5)
         StartAutoEquipPunch()
+    end
+
+    if _G.fastHitActive then
+        task.wait(0.6)
+        StartFastHit()
     end
 end)
 
@@ -307,7 +351,7 @@ RunService.Heartbeat:Connect(function()
     local data = UpdateCharacter()
     if not data or not data.Humanoid or data.Humanoid.Health <= 0 then return end
 
-    -- Ensure Punch is equipped (backup check)
+    -- Ensure Punch is equipped
     if autoEquipPunch then
         if not data.Punch or (data.Character and not data.Character:FindFirstChild("Punch")) then
             StartAutoEquipPunch()
@@ -321,6 +365,13 @@ RunService.Heartbeat:Connect(function()
         end
     else
         StopAutoBadKarma()
+    end
+
+    -- Fast Hit (backup activation)
+    if _G.fastHitActive then
+        if not fastHitConnection1 or not fastHitConnection2 then
+            StartFastHit()
+        end
     end
 end)
 
@@ -350,8 +401,12 @@ if autoEquipPunch then
     StartAutoEquipPunch()
 end
 
+if _G.fastHitActive then
+    StartFastHit()
+end
+
 if autoBadKarma then
     StartAutoBadKarma()
 end
 
-print("✅ Script loaded successfully - Auto Bad Karma + Auto Equip Punch enabled")
+print("✅ Script loaded successfully - Auto Bad Karma + Auto Equip + Fast Hit enabled")
