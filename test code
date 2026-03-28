@@ -9,11 +9,10 @@ local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
-local autoBadKarma = true
+local autoBadKarma = true -- Enable auto targeting only evil players
 local autoFarm = true
 local autoServerHop = true
 local serverHopInterval = 30
-local killOnlyWeaker = true
 local autoTPKingGym = true
 local autoLockPosition = true
 local autoSetNight = true
@@ -99,11 +98,17 @@ local function GetTargetHealth(target)
     return hum and hum.MaxHealth or 100
 end
 
-local function ShouldKillPlayer(target)
-    if not killOnlyWeaker then return true end
-    local myDmg = GetLocalPlayerDamage()
-    local theirHP = GetTargetHealth(target)
-    return math.ceil(theirHP / myDmg) <= 5
+local function ShouldTargetPlayer(target)
+    if target == LocalPlayer then return false end
+    local character = target.Character
+    if not character then return false end
+    local evilKarma = character:FindFirstChild("evilKarma")
+    local goodKarma = character:FindFirstChild("goodKarma")
+    if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") then
+        -- Target only if evilKarma is greater than goodKarma
+        return evilKarma.Value > goodKarma.Value
+    end
+    return false
 end
 
 local Character, Humanoid, Hand, Punch, HRP
@@ -244,7 +249,7 @@ RunService.Heartbeat:Connect(function()
 
     for _, other in ipairs(Players:GetPlayers()) do
         if other == LocalPlayer then continue end
-        if not ShouldKillPlayer(other) then continue end
+        if not ShouldTargetPlayer(other) then continue end
 
         local char = other.Character
         if not char then continue end
