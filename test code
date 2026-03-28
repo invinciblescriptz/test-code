@@ -9,7 +9,7 @@ local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
-local autoBadKarma = true -- Enable auto targeting only evil players
+local autoTargetEvil = true -- Only target players with higher evilKarma
 local autoFarm = true
 local autoServerHop = true
 local serverHopInterval = 30
