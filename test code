@@ -238,6 +238,22 @@ local function StopAutoBadKarma()
     end
 end
 
+-- ====================== Auto Equip Punch Toggle ======================
+local autoEquipPunch = false
+
+function toggleAutoEquipPunch(state)
+    autoEquipPunch = state
+    task.spawn(function()
+        while autoEquipPunch do
+            local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+            if punch then
+                punch.Parent = LocalPlayer.Character
+            end
+            task.wait(0.1)
+        end
+    end)
+end
+
 -- ====================== MAIN LOOP ======================
 RunService.Heartbeat:Connect(function()
     -- Auto Server Hop
