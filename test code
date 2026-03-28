@@ -43,9 +43,8 @@ mainTabData:AddSwitch("Auto Big Hitbox", function(state)
     if not state then resetHitbox() end
 end):Set(true)
 
-mainTab:AddSwitch("Auto Bad Karma", function(bool)
-    autoBadKarma = bool
-    task.spawn(function()
+local function createKarmaFarm()
+    return task.spawn(function()
         while autoBadKarma do
             local playerChar = LocalPlayer.Character
             local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
@@ -70,6 +69,13 @@ mainTab:AddSwitch("Auto Bad Karma", function(bool)
             task.wait(0.01)
         end
     end)
+end
+
+mainTab:AddSwitch("Auto Bad Karma", function(bool)
+    autoBadKarma = bool
+    if bool then
+        createKarmaFarm()
+    end
 end)
 
 -- Gym location setup
@@ -122,7 +128,6 @@ local function setupPositionLock()
     positionLockAlignPos.Parent = hrp
 end
 
--- Night Time Function
 local function setNightTime()
     Lighting.ClockTime = 0
     Lighting.Brightness = 0.5
@@ -130,7 +135,6 @@ local function setNightTime()
     Lighting.OutdoorAmbient = Color3.fromRGB(30, 30, 50)
 end
 
--- Hitbox Sizes
 local TARGET_HITBOX_SIZE = Vector3.new(25, 25, 25)
 
 local function setBigHitbox()
@@ -145,7 +149,6 @@ local function resetHitbox()
     if hrp then hrp.Size = Vector3.new(2, 2, 1) end
 end
 
--- Stats & Kill Logic
 local function GetPlayerStatValue(plr, statNames)
     if not plr then return nil end
     if type(statNames) == "string" then statNames = {statNames} end
@@ -181,7 +184,6 @@ local function ShouldKillPlayer(target)
     return math.ceil(theirHP / myDmg) <= 5
 end
 
--- Character vars
 local Character, Humanoid, Hand, Punch, HRP
 local LastAttack = 0
 
@@ -339,5 +341,3 @@ RunService.Heartbeat:Connect(function()
         end
     end
 end)
-
-print("Invincible Kill Farm Loaded! | Night: " .. (autoSetNight and "ON" or "OFF") .. " | Big Hitbox: " .. (autoBigHitbox and "ON" or "OFF") .. " | Hop Interval: " .. serverHopInterval .. "s")
