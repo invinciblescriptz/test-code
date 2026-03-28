@@ -1,6 +1,6 @@
 -- Load UI Library
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library"))()
-local window = library:AddWindow("Invincible Kill Farm", {
+local window = library:AddWindow("bad karma farming", {
     main_color = Color3.fromRGB(0, 0, 0),
     min_size = Vector2.new(200, 200),
     can_resize = false,
@@ -43,8 +43,7 @@ mainTabData:AddSwitch("Auto Big Hitbox", function(state)
     if not state then resetHitbox() end
 end):Set(true)
 
--- "Auto Bad Karma" Switch
-mainTabData:AddSwitch("Auto Bad Karma", function(bool)
+mainTab:AddSwitch("Auto Bad Karma", function(bool)
     autoBadKarma = bool
     task.spawn(function()
         while autoBadKarma do
