@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library", true))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/invinciblescriptz/invincible-ui/refs/heads/main/kitty%20go%20mow%20mow%20ui", true))()
 
 -- VENTANA PRINCIPAL
 local window = library:AddWindow(string.format("INV Public || Made by invincible || Hello %s", LocalPlayer.DisplayName), {
