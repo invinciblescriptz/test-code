@@ -6,7 +6,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memej
 -- VENTANA PRINCIPAL
 local window = library:AddWindow(string.format("invincibles priv script || Hello %s", LocalPlayer.DisplayName), {
     main_color = Color3.fromRGB(0, 0, 0), -- black
-    min_size = Vector2.new(660, 520),
+    min_size = Vector2.new(660, 890),
     can_resize = false,
 })
 
@@ -218,82 +218,6 @@ statsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 statsLabel.BackgroundTransparency = 1
 statsLabel.Font = Enum.Font.Code
 statsLabel.Parent = mainFrame
-
--- ANTI-LAG SECTION
-local lagTitle = Instance.new("TextLabel")
-lagTitle.Text = "--- ANTI LAG ---"
-lagTitle.Size = UDim2.new(1, 0, 0, 25)
-lagTitle.Position = UDim2.new(0, 0, 0, 85)
-lagTitle.TextColor3 = Color3.fromRGB(100, 100, 100)
-lagTitle.BackgroundTransparency = 1
-lagTitle.Font = Enum.Font.GothamMedium
-lagTitle.TextSize = 12
-lagTitle.Parent = mainFrame
-
-local lagBtn = Instance.new("TextButton")
-lagBtn.Size = UDim2.new(0, 160, 0, 30)
-lagBtn.Position = UDim2.new(0.5, -80, 0, 115)
-lagBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-lagBtn.Text = "Boost FPS: OFF"
-lagBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-lagBtn.Font = Enum.Font.GothamBold
-lagBtn.Parent = mainFrame
-
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(0, 6)
-btnCorner.Parent = lagBtn
-
--- PERMANENT TOGGLE BUTTON (Placed outside mainFrame)
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "ToggleUI"
-toggleBtn.Size = UDim2.new(0, 100, 0, 30)
-toggleBtn.Position = UDim2.new(0, 50, 0.5, 100) -- Stays below the frame area
-toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-toggleBtn.Text = "HIDE UI"
-toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.Parent = screenGui
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 6)
-toggleCorner.Parent = toggleBtn
-
--- Toggle Logic Fix
-toggleBtn.MouseButton1Click:Connect(function()
-    mainFrame.Visible = not mainFrame.Visible
-    toggleBtn.Text = mainFrame.Visible and "HIDE UI" or "SHOW UI"
-end)
-
--- ANTI-LAG LOGIC
-lagBtn.MouseButton1Click:Connect(function()
-    antiLagEnabled = not antiLagEnabled
-    if antiLagEnabled then
-        lagBtn.Text = "Boost FPS: ON"
-        lagBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
-        Lighting.GlobalShadows = false
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("Decal") or v:IsA("Texture") then
-                v.Transparency = 1
-            end
-        end
-    else
-        lagBtn.Text = "Boost FPS: OFF"
-        lagBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Lighting.GlobalShadows = true
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("Decal") or v:IsA("Texture") then
-                v.Transparency = 0
-            end
-        end
-    end
-end)
-
--- ANTI-AFK & STATS LOOP
-player.Idled:Connect(function()
-    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-end)
 
 RunService.RenderStepped:Connect(function()
     local fps = math.floor(1 / RunService.RenderStepped:Wait())
@@ -4222,9 +4146,3 @@ Gift:AddButton(
         end
     end
 )
-
-
-local Credits = window:AddTab("Credits")
-
-Credits:AddLabel("Made by invincible")
-Credits:AddLabel("Made by queen kkrxzy")
