@@ -180,35 +180,6 @@ local player = Players.LocalPlayer
 local startTime = os.time()
 local antiLagEnabled = false
 
--- UI Root
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "XxDEMONxX_Pro"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = CoreGui
-
--- MAIN FRAME
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 180)
-mainFrame.Position = UDim2.new(0, 50, 0.5, -90)
-mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Visible = true
-mainFrame.Parent = screenGui
-
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10)
-corner.Parent = mainFrame
-
-local title = Instance.new("TextLabel")
-title.Text = "XxDEMONxX SYSTEM"
-title.Size = UDim2.new(1, 0, 0, 35)
-title.TextColor3 = Color3.fromRGB(255, 0, 0)
-title.Font = Enum.Font.GothamBold
-title.BackgroundTransparency = 1
-title.TextSize = 16
-title.Parent = mainFrame
-
 -- STATS SECTION
 local statsLabel = Instance.new("TextLabel")
 statsLabel.Text = "FPS: -- | Ping: --\nTimer: 00:00:00"
@@ -226,7 +197,6 @@ RunService.RenderStepped:Connect(function()
     local timerStr = string.format("%02d:%02d:%02d", math.floor(diff/3600), math.floor((diff%3600)/60), diff%60)
     statsLabel.Text = "FPS: "..fps.." | Ping: "..ping.."ms\nTimer: "..timerStr
 end)
-
 
 -- Auto Spin
 AutoFarm:AddButton("Auto Spin", function(state)
