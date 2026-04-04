@@ -7,8 +7,10 @@ local window = library:AddWindow("invincible", {
     background_transparency = 1,
 })
 
-local statsTab = AddTab(Stats, "Stats")
+-- Add a new tab called "Stats"
+local statsTab = window:AddTab("Stats")
 
+-- Initialize variables for tracking
 local sessionStartTime = os.time()
 local sessionStartStrength = 0
 local sessionStartDurability = 0
@@ -17,29 +19,20 @@ local sessionStartRebirths = 0
 local sessionStartBrawls = 0
 local hasStartedTracking = false
 
-statsFolder:AddLabel("Strength")
-local strengthStatsLabel = statsFolder:AddLabel("Actual: Waiting...")
-local strengthGainLabel = statsFolder:AddLabel("Gained: 0")
+-- Create labels and buttons directly in the Stats tab
+local strengthStatsLabel = statsTab:AddLabel("Actual: Waiting...")
+local strengthGainLabel = statsTab:AddLabel("Gained: 0")
+local durabilityStatsLabel = statsTab:AddLabel("Actual: Waiting...")
+local durabilityGainLabel = statsTab:AddLabel("Gained: 0")
+local rebirthsStatsLabel = statsTab:AddLabel("Actual: Waiting...")
+local rebirthsGainLabel = statsTab:AddLabel("Gained: 0")
+local killsStatsLabel = statsTab:AddLabel("Actual: Waiting...")
+local killsGainLabel = statsTab:AddLabel("Gained: 0")
+local brawlsStatsLabel = statsTab:AddLabel("Actual: Waiting...")
+local brawlsGainLabel = statsTab:AddLabel("Gained: 0")
+local sessionTimeLabel = statsTab:AddLabel("Time: 00:00:00")
 
-statsFolder:AddLabel("Durability")
-local durabilityStatsLabel = statsFolder:AddLabel("Actual: Waiting...")
-local durabilityGainLabel = statsFolder:AddLabel("Gained: 0")
-
-statsFolder:AddLabel("Rebirths")
-local rebirthsStatsLabel = statsFolder:AddLabel("Actual: Waiting...")
-local rebirthsGainLabel = statsFolder:AddLabel("Gained: 0")
-
-statsFolder:AddLabel("Kills")
-local killsStatsLabel = statsFolder:AddLabel("Actual: Waiting...")
-local killsGainLabel = statsFolder:AddLabel("Gained: 0")
-
-statsFolder:AddLabel("Brawls")
-local brawlsStatsLabel = statsFolder:AddLabel("Actual: Waiting...")
-local brawlsGainLabel = statsFolder:AddLabel("Gained: 0")
-
-statsFolder:AddLabel("Time Of Session")
-local sessionTimeLabel = statsFolder:AddLabel("Time: 00:00:00")
-
+-- Helper functions
 local function formatNumber(number)
     if number >= 1e15 then return string.format("%.2fQ", number/1e15)
     elseif number >= 1e12 then return string.format("%.2fT", number/1e12)
@@ -102,10 +95,12 @@ local function updateStats()
     sessionTimeLabel.Text = string.format("Time: %s", formatTime(elapsedTime))
 end
 
+-- Start tracking and update periodically
 updateStats()
 spawn(function() while wait(2) do updateStats() end end)
 
-statsFolder:AddButton("Reset Stats", function()
+-- Button to reset stats
+statsTab:AddButton("Reset Stats", function()
     local player = game.Players.LocalPlayer
     sessionStartStrength = player.leaderstats.Strength.Value
     sessionStartDurability = player.Durability.Value
@@ -120,7 +115,8 @@ statsFolder:AddButton("Reset Stats", function()
     })
 end)
 
-statsFolder:AddButton("Copiar Estadísticas", function()
+-- Button to copy stats
+statsTab:AddButton("Copiar Estadísticas", function()
     local player = game.Players.LocalPlayer
     local statsText = "Estadísticas de Muscle Legends:\n\n"
     statsText = statsText .. "Strength: " .. tostring(math.floor(player.leaderstats.Strength.Value)) .. "\n"
