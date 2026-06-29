@@ -2053,6 +2053,11 @@ local window = library:AddWindow("invincible | private | welcome, " .. player.Di
 
 local fastTab = window:AddTab("Fast Farming")
 
+local titleLabel = fastTab:AddLabel("Rebirth")
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
 -- ==================== ANTI-IDLE & ANTI-AD ====================
 player.Idled:Connect(function()
     virtualUser:CaptureController()
@@ -2207,7 +2212,10 @@ task.spawn(function()
     end
 end)
 
-fastTab:AddLabel("====================").TextSize = 17
+local titleLabel = fastTab:AddLabel("Fast Strength")
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 -- ==================== FAST REP ====================
 local farmRunning = false
@@ -2254,7 +2262,10 @@ fastTab:AddSwitch("Fast Rep", function(state)
     if state then task.spawn(startAutoRep) end
 end)
 
-fastTab:AddLabel("====================").TextSize = 17
+local titleLabel = fastTab:AddLabel("Other")
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 -- ==================== AUTO BOOSTS ====================
 local ProteinEggLabel = fastTab:AddLabel("Protein Eggs: 0")
