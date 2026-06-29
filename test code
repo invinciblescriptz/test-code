@@ -2051,6 +2051,9 @@ local window = library:AddWindow("invincible | private | welcome,  " .. player.D
     can_resize = false,
 })
 
+
+local fastTab = Window:AddTab("Fast Farming")
+
 player.Idled:Connect(function() 
     virtualUser:CaptureController() 
     virtualUser:ClickButton2(Vector2.new()) 
@@ -2070,8 +2073,6 @@ local function deleteAds()
     end)
 end
 deleteAds()
-
-local fastTab = Window:AddTab("Fast Farming")
 
 local isRunning = false
 
