@@ -2045,10 +2045,10 @@ local player = game.Players.LocalPlayer
 
 local player = game.Players.LocalPlayer
 
-local window = library:AddWindow("invincible | private | welcome,  " .. player.DisplayName, {
+local window = library:AddWindow("invincible | private | welcome, " .. player.DisplayName, {
     main_color = Color3.fromRGB(0, 0, 0),
     min_size = Vector2.new(660, 870),
     can_resize = false,
 })
 
-local fastTab = Window:AddTab("Fast Farm")
+local fastTab = window:AddTab("Fast Farm")
