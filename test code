@@ -2051,5 +2051,4 @@ local window = library:AddWindow("invincible | private | welcome,  " .. player.D
     can_resize = false,
 })
 
--- ==================== FAST FARMING TAB ====================
-local fastTab = window:AddTab("Fast Farming")
+local autofarm = window:AddTab("Fast Farm")
