@@ -2262,6 +2262,177 @@ fastTab:AddSwitch("Fast Rep", function(state)
     if state then task.spawn(startAutoRep) end
 end)
 
+-- ==================== INVINCIBLE ANTI-AFK GUI ====================
+local antiAFKGui = nil
+local antiAFKConnections = {}
+
+local function createAntiAFKGui()
+    if antiAFKGui then return end
+    
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local VirtualUser = game:GetService("VirtualUser")
+    local player = Players.LocalPlayer
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "InvincibleAntiAFK"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 350, 0, 220)
+    frame.Position = UDim2.new(0.7, 0, 0.1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    frame.BorderSizePixel = 0
+    frame.Active = true
+    frame.Draggable = true
+    frame.Parent = screenGui
+    
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 8)
+    uiCorner.Parent = frame
+    
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(200, 0, 0)
+    uiStroke.Thickness = 2
+    uiStroke.Parent = frame
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.BackgroundTransparency = 1
+    title.Text = "Invincible Anti AFK"
+    title.TextColor3 = Color3.fromRGB(255, 50, 50)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = frame
+    
+    local titleLine = Instance.new("Frame")
+    titleLine.Size = UDim2.new(1, -20, 0, 2)
+    titleLine.Position = UDim2.new(0, 10, 0, 38)
+    titleLine.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    titleLine.BorderSizePixel = 0
+    titleLine.Parent = frame
+    
+    -- Labels
+    local timeLabel = Instance.new("TextLabel")
+    timeLabel.Size = UDim2.new(1, -20, 0, 30)
+    timeLabel.Position = UDim2.new(0, 10, 0, 50)
+    timeLabel.BackgroundTransparency = 1
+    timeLabel.Text = "⏳ Time: 00:00:00"
+    timeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    timeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    timeLabel.Font = Enum.Font.Gotham
+    timeLabel.TextSize = 18
+    timeLabel.Parent = frame
+    
+    local fpsLabel = Instance.new("TextLabel")
+    fpsLabel.Size = UDim2.new(1, -20, 0, 30)
+    fpsLabel.Position = UDim2.new(0, 10, 0, 85)
+    fpsLabel.BackgroundTransparency = 1
+    fpsLabel.Text = "🚀 FPS: 60"
+    fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    fpsLabel.Font = Enum.Font.Gotham
+    fpsLabel.TextSize = 18
+    fpsLabel.Parent = frame
+    
+    local msLabel = Instance.new("TextLabel")
+    msLabel.Size = UDim2.new(1, -20, 0, 30)
+    msLabel.Position = UDim2.new(0, 10, 0, 120)
+    msLabel.BackgroundTransparency = 1
+    msLabel.Text = "📡 MS: 42"
+    msLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    msLabel.TextXAlignment = Enum.TextXAlignment.Left
+    msLabel.Font = Enum.Font.Gotham
+    msLabel.TextSize = 18
+    msLabel.Parent = frame
+    
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(1, -20, 0, 30)
+    statusLabel.Position = UDim2.new(0, 10, 0, 170)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "✅ Active - Preventing AFK Kick"
+    statusLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+    statusLabel.TextXAlignment = Enum.TextXAlignment.Center
+    statusLabel.Font = Enum.Font.GothamBold
+    statusLabel.TextSize = 16
+    statusLabel.Parent = frame
+    
+    antiAFKGui = screenGui
+    
+    -- Anti-AFK Logic
+    local idledConn = player.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+        statusLabel.Text = "🔄 Roblox tried to kick you... Blocked!"
+        task.wait(2)
+        statusLabel.Text = "✅ Active - Preventing AFK Kick"
+    end)
+    table.insert(antiAFKConnections, idledConn)
+    
+    -- FPS Counter
+    local fps = 0
+    local fpsConn = RunService.RenderStepped:Connect(function()
+        fps += 1
+    end)
+    table.insert(antiAFKConnections, fpsConn)
+    
+    task.spawn(function()
+        while antiAFKGui and antiAFKGui.Parent do
+            fpsLabel.Text = "🚀 FPS: " .. fps
+            fps = 0
+            task.wait(1)
+        end
+    end)
+    
+    -- Timer
+    local startTime = tick()
+    task.spawn(function()
+        while antiAFKGui and antiAFKGui.Parent do
+            local elapsed = tick() - startTime
+            local hours = math.floor(elapsed / 3600)
+            local minutes = math.floor((elapsed % 3600) / 60)
+            local seconds = math.floor(elapsed % 60)
+            timeLabel.Text = string.format("⏳ Time: %02d:%02d:%02d", hours, minutes, seconds)
+            task.wait(0.5)
+        end
+    end)
+    
+    -- Ping (simulated)
+    task.spawn(function()
+        while antiAFKGui and antiAFKGui.Parent do
+            local ping = math.random(25, 75)
+            msLabel.Text = "📡 MS: " .. ping
+            task.wait(2)
+        end
+    end)
+    
+    print("Invincible Anti-AFK GUI Enabled")
+end
+
+local function destroyAntiAFKGui()
+    if antiAFKGui then
+        antiAFKGui:Destroy()
+        antiAFKGui = nil
+    end
+    for _, conn in ipairs(antiAFKConnections) do
+        if conn then conn:Disconnect() end
+    end
+    antiAFKConnections = {}
+    print("Invincible Anti-AFK GUI Disabled")
+end
+
+-- ==================== SWITCH ====================
+fastTab:AddSwitch("Invincible Anti-AFK GUI", function(state)
+    if state then
+        createAntiAFKGui()
+    else
+        destroyAntiAFKGui()
+    end
+end)
+
+
 local titleLabel = fastTab:AddLabel("Other")
 titleLabel.TextSize = 18
 titleLabel.Font = Enum.Font.Bangers        
