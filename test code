@@ -3544,10 +3544,6 @@ local ancientJungleRockSwitch = mobileFolder:AddSwitch("Farm Ancient Jungle Rock
     end
 end) 
 
-
-
-local rocktelFolder = miscTab:AddFolder("Rock V2")
-
 local rockFolder = miscTab:AddFolder("Rock V2")
 
 local teleportCFrame = CFrame.new(
@@ -3560,14 +3556,14 @@ local teleportCFrame = CFrame.new(
 _G.autoRockActive = false
 _G.positionLocked = false
 
-rockFolder:AddSwitch("Auto Rock (TP + Lock + Punch)", function(Value)
-    _G.autoRockActive = Value
+rockFolder:AddSwitch("White Rock V2", function(state)
+    _G.autoRockActive = state
     
     local player = game.Players.LocalPlayer
     local character = player.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     
-    if Value then
+    if state then
         -- Teleport once
         character.HumanoidRootPart.CFrame = teleportCFrame
         
@@ -3580,20 +3576,18 @@ rockFolder:AddSwitch("Auto Rock (TP + Lock + Punch)", function(Value)
                     character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
                     character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
                 end
-                task.wait(0.01) -- Very tight loop for strong lock
+                task.wait(0.01)
             end
         end)
         
-        -- Start Auto Punch
+        -- === NEW AUTO PUNCH (your updated version) ===
         _G.fastHitActive = true
         
-        -- Equip + fast attack setup
         task.spawn(function()
             while _G.fastHitActive do
-                if not _G.fastHitActive then break end
                 local punch = player.Backpack:FindFirstChild("Punch")
                 if punch then
-                    punch.Parent = character
+                    punch.Parent = player.Character
                     if punch:FindFirstChild("attackTime") then
                         punch.attackTime.Value = 0
                     end
@@ -3602,18 +3596,13 @@ rockFolder:AddSwitch("Auto Rock (TP + Lock + Punch)", function(Value)
             end
         end)
         
-        -- Main punch loop
         task.spawn(function()
             while _G.fastHitActive do
-                if not _G.fastHitActive then break end
-                player.muscleEvent:FireServer("punch", "rightHand")
-                player.muscleEvent:FireServer("punch", "leftHand")
-                
-                local punchTool = character:FindFirstChild("Punch")
-                if punchTool then
-                    punchTool:Activate()
+                local punch = player.Character and player.Character:FindFirstChild("Punch")
+                if punch then
+                    punch:Activate()
                 end
-                task.wait(0)
+                task.wait(0.1)
             end
         end)
         
@@ -3623,14 +3612,13 @@ rockFolder:AddSwitch("Auto Rock (TP + Lock + Punch)", function(Value)
         _G.positionLocked = false
         
         -- Unequip Punch
-        if character then
-            local equipped = character:FindFirstChild("Punch")
-            if equipped then
-                equipped.Parent = player.Backpack
-            end
+        local punch = player.Character and player.Character:FindFirstChild("Punch")
+        if punch then
+            punch.Parent = player.Backpack
         end
     end
 end)
+
 
 local rebirthsFolder = miscTab:AddFolder("Rebirths")
 
