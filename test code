@@ -3556,7 +3556,7 @@ local teleportCFrame = CFrame.new(
 _G.autoRockActive = false
 _G.positionLocked = false
 
-rockFolder:AddSwitch("White Rock V2", function(state)
+rockFolder:AddButton("White Rock V2", function(state)
     _G.autoRockActive = state
     
     local player = game.Players.LocalPlayer
@@ -3619,6 +3619,141 @@ rockFolder:AddSwitch("White Rock V2", function(state)
     end
 end)
 
+local teleportCFrame = CFrame.new(-9039.92578, 7.06014156, -6052.73633, 0.201130643, -7.3278045e-08, -0.979564428, 4.66841188e-09, 1, -7.38482129e-08, 0.979564428, 1.02801287e-08, 0.201130643)
+
+_G.autoRockActive = false
+_G.positionLocked = false
+
+rockFolder:AddButton("Green Rock V2", function(state)
+    _G.autoRockActive = state
+    
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    
+    if state then
+        -- Teleport once
+        character.HumanoidRootPart.CFrame = teleportCFrame
+        
+        -- Lock position
+        _G.positionLocked = true
+        task.spawn(function()
+            while _G.positionLocked and _G.autoRockActive do
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    character.HumanoidRootPart.CFrame = teleportCFrame
+                    character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+                    character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+                end
+                task.wait(0.01)
+            end
+        end)
+        
+        -- === NEW AUTO PUNCH (your updated version) ===
+        _G.fastHitActive = true
+        
+        task.spawn(function()
+            while _G.fastHitActive do
+                local punch = player.Backpack:FindFirstChild("Punch")
+                if punch then
+                    punch.Parent = player.Character
+                    if punch:FindFirstChild("attackTime") then
+                        punch.attackTime.Value = 0
+                    end
+                end
+                task.wait(0.1)
+            end
+        end)
+        
+        task.spawn(function()
+            while _G.fastHitActive do
+                local punch = player.Character and player.Character:FindFirstChild("Punch")
+                if punch then
+                    punch:Activate()
+                end
+                task.wait(0.1)
+            end
+        end)
+        
+    else
+        -- Disable everything
+        _G.fastHitActive = false
+        _G.positionLocked = false
+        
+        -- Unequip Punch
+        local punch = player.Character and player.Character:FindFirstChild("Punch")
+        if punch then
+            punch.Parent = player.Backpack
+        end
+    end
+end)
+
+local teleportCFrame = CFrame.new(-7552.75, 2.1605444, 2990.88647, 0.92441076, 4.41671116e-10, 0.38139841, -4.49056969e-08, 1, 1.07681728e-07, -0.38139841, -1.16669113e-07, 0.92441076)
+
+_G.autoRockActive = false
+_G.positionLocked = false
+
+rockFolder:AddButton("Red Rock V2", function(state)
+    _G.autoRockActive = state
+    
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    
+    if state then
+        -- Teleport once
+        character.HumanoidRootPart.CFrame = teleportCFrame
+        
+        -- Lock position
+        _G.positionLocked = true
+        task.spawn(function()
+            while _G.positionLocked and _G.autoRockActive do
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    character.HumanoidRootPart.CFrame = teleportCFrame
+                    character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+                    character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+                end
+                task.wait(0.01)
+            end
+        end)
+        
+        -- === NEW AUTO PUNCH (your updated version) ===
+        _G.fastHitActive = true
+        
+        task.spawn(function()
+            while _G.fastHitActive do
+                local punch = player.Backpack:FindFirstChild("Punch")
+                if punch then
+                    punch.Parent = player.Character
+                    if punch:FindFirstChild("attackTime") then
+                        punch.attackTime.Value = 0
+                    end
+                end
+                task.wait(0.1)
+            end
+        end)
+        
+        task.spawn(function()
+            while _G.fastHitActive do
+                local punch = player.Character and player.Character:FindFirstChild("Punch")
+                if punch then
+                    punch:Activate()
+                end
+                task.wait(0.1)
+            end
+        end)
+        
+    else
+        -- Disable everything
+        _G.fastHitActive = false
+        _G.positionLocked = false
+        
+        -- Unequip Punch
+        local punch = player.Character and player.Character:FindFirstChild("Punch")
+        if punch then
+            punch.Parent = player.Backpack
+        end
+    end
+end)
 
 local rebirthsFolder = miscTab:AddFolder("Rebirths")
 
