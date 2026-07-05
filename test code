@@ -113,10 +113,10 @@ window.ClipsDescendants = true
 window.Position = UDim2.new(0, 20, 0, 20)
 window.Selectable = true
 window.Size = UDim2.new(0, 200, 0, 200)
-window.Image = "rbxassetid://2851926732"
+window.Image = "rbxassetid://3570695787"
 window.ImageColor3 = Color3.new(0.0823529, 0.0862745, 0.0901961)
 window.ScaleType = Enum.ScaleType.Slice
-window.SliceCenter = Rect.new(12, 12, 12, 12)
+window.SliceCenter = Rect.new(8, 8, 8, 8)
 
 resizer.Name = "Resizer"
 resizer.Parent = window
@@ -142,7 +142,7 @@ toggle.Position = UDim2.new(0, 5, 0, -2)
 toggle.Rotation = 90
 toggle.Size = UDim2.new(0, 20, 0, 20)
 toggle.ZIndex = 2
-toggle.Image = "rbxassetid://119342127617334"
+toggle.Image = "rbxassetid://119342127617334" -- YOUR ARROW ONLY HERE
 
 base.Name = "Base"
 base.Parent = bar
@@ -150,10 +150,10 @@ base.BackgroundColor3 = Color3.new(0.160784, 0.290196, 0.478431)
 base.BorderSizePixel = 0
 base.Position = UDim2.new(0, 0, 0.800000012, 0)
 base.Size = UDim2.new(1, 0, 0, 10)
-base.Image = "rbxassetid://2851926732"
+base.Image = "rbxassetid://3570695787"
 base.ImageColor3 = Color3.new(0.160784, 0.290196, 0.478431)
 base.ScaleType = Enum.ScaleType.Slice
-base.SliceCenter = Rect.new(12, 12, 12, 12)
+base.SliceCenter = Rect.new(8, 8, 8, 8)
 
 top.Name = "Top"
 top.Parent = bar
@@ -161,10 +161,10 @@ top.BackgroundColor3 = Color3.new(1, 1, 1)
 top.BackgroundTransparency = 1
 top.Position = UDim2.new(0, 0, 0, -5)
 top.Size = UDim2.new(1, 0, 0, 10)
-top.Image = "rbxassetid://2851926732"
+top.Image = "rbxassetid://3570695787"
 top.ImageColor3 = Color3.new(0.160784, 0.290196, 0.478431)
 top.ScaleType = Enum.ScaleType.Slice
-top.SliceCenter = Rect.new(12, 12, 12, 12)
+top.SliceCenter = Rect.new(8, 8, 8, 8)
 
 tabs.Name = "Tabs"
 tabs.Parent = window
@@ -192,7 +192,7 @@ tabSelection.BackgroundTransparency = 1
 tabSelection.Position = UDim2.new(0, 15, 0, 30)
 tabSelection.Size = UDim2.new(1, -30, 0, 25)
 tabSelection.Visible = false
-tabSelection.Image = "rbxassetid://2851929490"
+tabSelection.Image = "rbxassetid://3570695787"
 tabSelection.ImageColor3 = Color3.new(0.145098, 0.14902, 0.156863)
 tabSelection.ScaleType = Enum.ScaleType.Slice
 tabSelection.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -244,7 +244,7 @@ textBoxRoundify4px.Parent = textBox
 textBoxRoundify4px.BackgroundColor3 = Color3.new(1, 1, 1)
 textBoxRoundify4px.BackgroundTransparency = 1
 textBoxRoundify4px.Size = UDim2.new(1, 0, 1, 0)
-textBoxRoundify4px.Image = "rbxassetid://2851929490"
+textBoxRoundify4px.Image = "rbxassetid://3570695787"
 textBoxRoundify4px.ImageColor3 = Color3.new(0.203922, 0.207843, 0.219608)
 textBoxRoundify4px.ScaleType = Enum.ScaleType.Slice
 textBoxRoundify4px.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -255,7 +255,7 @@ slider.BackgroundColor3 = Color3.new(1, 1, 1)
 slider.BackgroundTransparency = 1
 slider.Position = UDim2.new(0, 0, 0.178571433, 0)
 slider.Size = UDim2.new(1, 0, 0, 20)
-slider.Image = "rbxassetid://2851929490"
+slider.Image = "rbxassetid://3570695787"
 slider.ImageColor3 = Color3.new(0.145098, 0.14902, 0.156863)
 slider.ScaleType = Enum.ScaleType.Slice
 slider.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -277,7 +277,7 @@ indicator.Parent = slider
 indicator.BackgroundColor3 = Color3.new(1, 1, 1)
 indicator.BackgroundTransparency = 1
 indicator.Size = UDim2.new(0, 0, 0, 20)
-indicator.Image = "rbxassetid://2851929490"
+indicator.Image = "rbxassetid://3570695787"
 indicator.ImageColor3 = Color3.new(0.254902, 0.262745, 0.278431)
 indicator.ScaleType = Enum.ScaleType.Slice
 indicator.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -347,7 +347,7 @@ dropdownIndicator.Position = UDim2.new(0.899999976, -10, 0.100000001, 0)
 dropdownIndicator.Rotation = -90
 dropdownIndicator.Size = UDim2.new(0, 15, 0, 15)
 dropdownIndicator.ZIndex = 2
-dropdownIndicator.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4744658743"
+dropdownIndicator.Image = "rbxassetid://6031094678" -- standard, not yours
 
 dropdownBox.Name = "Box"
 dropdownBox.Parent = dropdown
@@ -356,7 +356,7 @@ dropdownBox.BackgroundTransparency = 1
 dropdownBox.Position = UDim2.new(0, 0, 0, 25)
 dropdownBox.Size = UDim2.new(1, 0, 0, 150)
 dropdownBox.ZIndex = 3
-dropdownBox.Image = "rbxassetid://2851929490"
+dropdownBox.Image = "rbxassetid://3570695787"
 dropdownBox.ImageColor3 = Color3.new(0.129412, 0.133333, 0.141176)
 dropdownBox.ScaleType = Enum.ScaleType.Slice
 dropdownBox.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -379,7 +379,7 @@ textButtonRoundify4px.Parent = dropdown
 textButtonRoundify4px.BackgroundColor3 = Color3.new(1, 1, 1)
 textButtonRoundify4px.BackgroundTransparency = 1
 textButtonRoundify4px.Size = UDim2.new(1, 0, 1, 0)
-textButtonRoundify4px.Image = "rbxassetid://2851929490"
+textButtonRoundify4px.Image = "rbxassetid://3570695787"
 textButtonRoundify4px.ImageColor3 = Color3.new(0.203922, 0.207843, 0.219608)
 textButtonRoundify4px.ScaleType = Enum.ScaleType.Slice
 textButtonRoundify4px.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -402,7 +402,7 @@ textButtonRoundify4px_2.Parent = tabButton
 textButtonRoundify4px_2.BackgroundColor3 = Color3.new(1, 1, 1)
 textButtonRoundify4px_2.BackgroundTransparency = 1
 textButtonRoundify4px_2.Size = UDim2.new(1, 0, 1, 0)
-textButtonRoundify4px_2.Image = "rbxassetid://2851929490"
+textButtonRoundify4px_2.Image = "rbxassetid://3570695787"
 textButtonRoundify4px_2.ImageColor3 = Color3.new(0.203922, 0.207843, 0.219608)
 textButtonRoundify4px_2.ScaleType = Enum.ScaleType.Slice
 textButtonRoundify4px_2.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -413,7 +413,7 @@ folder.BackgroundColor3 = Color3.new(1, 1, 1)
 folder.BackgroundTransparency = 1
 folder.Position = UDim2.new(0, 0, 0, 50)
 folder.Size = UDim2.new(1, 0, 0, 20)
-folder.Image = "rbxassetid://2851929490"
+folder.Image = "rbxassetid://3570695787"
 folder.ImageColor3 = Color3.new(0.0823529, 0.0862745, 0.0901961)
 folder.ScaleType = Enum.ScaleType.Slice
 folder.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -436,7 +436,7 @@ textButtonRoundify4px_3.Parent = button
 textButtonRoundify4px_3.BackgroundColor3 = Color3.new(1, 1, 1)
 textButtonRoundify4px_3.BackgroundTransparency = 1
 textButtonRoundify4px_3.Size = UDim2.new(1, 0, 1, 0)
-textButtonRoundify4px_3.Image = "rbxassetid://2851929490"
+textButtonRoundify4px_3.Image = "rbxassetid://3570695787"
 textButtonRoundify4px_3.ImageColor3 = Color3.new(0.160784, 0.290196, 0.478431)
 textButtonRoundify4px_3.ScaleType = Enum.ScaleType.Slice
 textButtonRoundify4px_3.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -447,7 +447,7 @@ toggle2.BackgroundColor3 = Color3.new(1, 1, 1)
 toggle2.BackgroundTransparency = 1
 toggle2.Position = UDim2.new(0, 5, 0, 0)
 toggle2.Size = UDim2.new(0, 20, 0, 20)
-toggle2.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4731371541"
+toggle2.Image = "rbxassetid://6031094678" -- standard, not yours
 
 objects2.Name = "Objects"
 objects2.Parent = folder
@@ -477,7 +477,7 @@ console.Parent = prefabs
 console.BackgroundColor3 = Color3.new(1, 1, 1)
 console.BackgroundTransparency = 1
 console.Size = UDim2.new(1, 0, 0, 200)
-console.Image = "rbxassetid://2851928141"
+console.Image = "rbxassetid://3570695787"
 console.ImageColor3 = Color3.new(0.129412, 0.133333, 0.141176)
 console.ScaleType = Enum.ScaleType.Slice
 console.SliceCenter = Rect.new(8, 8, 8, 8)
@@ -632,7 +632,7 @@ colorPicker.Parent = prefabs
 colorPicker.BackgroundColor3 = Color3.new(1, 1, 1)
 colorPicker.BackgroundTransparency = 1
 colorPicker.Size = UDim2.new(0, 180, 0, 110)
-colorPicker.Image = "rbxassetid://2851929490"
+colorPicker.Image = "rbxassetid://3570695787"
 colorPicker.ImageColor3 = Color3.new(0.203922, 0.207843, 0.219608)
 colorPicker.ScaleType = Enum.ScaleType.Slice
 colorPicker.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -653,10 +653,10 @@ indicator3.BackgroundColor3 = Color3.new(1, 1, 1)
 indicator3.BackgroundTransparency = 1
 indicator3.Size = UDim2.new(0, 5, 0, 5)
 indicator3.ZIndex = 2
-indicator3.Image = "rbxassetid://2851926732"
+indicator3.Image = "rbxassetid://3570695787"
 indicator3.ImageColor3 = Color3.new(0, 0, 0)
 indicator3.ScaleType = Enum.ScaleType.Slice
-indicator3.SliceCenter = Rect.new(12, 12, 12, 12)
+indicator3.SliceCenter = Rect.new(8, 8, 8, 8)
 
 sample.Name = "Sample"
 sample.Parent = colorPicker
@@ -664,7 +664,7 @@ sample.BackgroundColor3 = Color3.new(1, 1, 1)
 sample.BackgroundTransparency = 1
 sample.Position = UDim2.new(0.800000012, 0, 0.0500000007, 0)
 sample.Size = UDim2.new(0, 25, 0, 25)
-sample.Image = "rbxassetid://2851929490"
+sample.Image = "rbxassetid://3570695787"
 sample.ScaleType = Enum.ScaleType.Slice
 sample.SliceCenter = Rect.new(4, 4, 4, 4)
 
@@ -700,7 +700,7 @@ textButtonRoundify4px_4.Parent = switchButton
 textButtonRoundify4px_4.BackgroundColor3 = Color3.new(1, 1, 1)
 textButtonRoundify4px_4.BackgroundTransparency = 1
 textButtonRoundify4px_4.Size = UDim2.new(1, 0, 1, 0)
-textButtonRoundify4px_4.Image = "rbxassetid://2851929490"
+textButtonRoundify4px_4.Image = "rbxassetid://3570695787"
 textButtonRoundify4px_4.ImageColor3 = Color3.new(0.160784, 0.290196, 0.478431)
 textButtonRoundify4px_4.ImageTransparency = 0.5
 textButtonRoundify4px_4.ScaleType = Enum.ScaleType.Slice
@@ -734,7 +734,7 @@ textButtonRoundify4px_5.Parent = button2
 textButtonRoundify4px_5.BackgroundColor3 = Color3.new(1, 1, 1)
 textButtonRoundify4px_5.BackgroundTransparency = 1
 textButtonRoundify4px_5.Size = UDim2.new(1, 0, 1, 0)
-textButtonRoundify4px_5.Image = "rbxassetid://2851929490"
+textButtonRoundify4px_5.Image = "rbxassetid://3570695787"
 textButtonRoundify4px_5.ImageColor3 = Color3.new(0.160784, 0.290196, 0.478431)
 textButtonRoundify4px_5.ScaleType = Enum.ScaleType.Slice
 textButtonRoundify4px_5.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -756,7 +756,7 @@ keybind.Parent = prefabs
 keybind.BackgroundColor3 = Color3.new(1, 1, 1)
 keybind.BackgroundTransparency = 1
 keybind.Size = UDim2.new(0, 200, 0, 20)
-keybind.Image = "rbxassetid://2851929490"
+keybind.Image = "rbxassetid://3570695787"
 keybind.ImageColor3 = Color3.new(0.203922, 0.207843, 0.219608)
 keybind.ScaleType = Enum.ScaleType.Slice
 keybind.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -791,7 +791,7 @@ inputRoundify4px.Parent = inputButton
 inputRoundify4px.BackgroundColor3 = Color3.new(1, 1, 1)
 inputRoundify4px.BackgroundTransparency = 1
 inputRoundify4px.Size = UDim2.new(1, 0, 1, 0)
-inputRoundify4px.Image = "rbxassetid://2851929490"
+inputRoundify4px.Image = "rbxassetid://3570695787"
 inputRoundify4px.ImageColor3 = Color3.new(0.290196, 0.294118, 0.313726)
 inputRoundify4px.ScaleType = Enum.ScaleType.Slice
 inputRoundify4px.SliceCenter = Rect.new(4, 4, 4, 4)
@@ -838,7 +838,7 @@ local function Resize(part, new, _delay)
 	tween:Play()
 end
 
-local function rgbtohsv(r, g, b) -- idk who made this function, but thanks
+local function rgbtohsv(r, g, b)
 	r, g, b = r / 255, g / 255, b / 255
 	local max, min = math.max(r, g, b), math.min(r, g, b)
 	local h, s, v
@@ -1006,7 +1006,7 @@ function library:AddWindow(title, options)
 			if inputObject.UserInputType == Enum.UserInputType.MouseButton1 then
 				Held = true
 
-				spawn(function() -- Loop check
+				spawn(function()
 					if Entered and Resizer.Active and options.can_resize then
 						while Held and Resizer.Active do
 
@@ -1132,7 +1132,7 @@ function library:AddWindow(title, options)
 
 				do -- Tab Elements
 
-					function tab_data:AddLabel(label_text) -- [Label]
+					function tab_data:AddLabel(label_text)
 						label_text = tostring(label_text or "New Label")
 
 						local label = prefabs:FindFirstChild("Label"):Clone()
@@ -1145,7 +1145,7 @@ function library:AddWindow(title, options)
 						return label
 					end
 
-					function tab_data:AddButton(button_text, callback) -- [Button]
+					function tab_data:AddButton(button_text, callback)
 						button_text = tostring(button_text or "New Button")
 						callback = typeof(callback) == "function" and callback or function()end
 
@@ -1174,7 +1174,7 @@ function library:AddWindow(title, options)
 						return button
 					end
 
-					function tab_data:AddSwitch(switch_text, callback) -- [Switch]
+					function tab_data:AddSwitch(switch_text, callback)
 						local switch_data = {}
 
 						switch_text = tostring(switch_text or "New Switch")
@@ -1269,7 +1269,7 @@ function library:AddWindow(title, options)
 
 						title.Text = slider_text
 
-						do -- Slider Math
+						do
 							local Entered = false
 							slider.MouseEnter:Connect(function()
 								Entered = true
@@ -1285,7 +1285,7 @@ function library:AddWindow(title, options)
 								if inputObject.UserInputType == Enum.UserInputType.MouseButton1 then
 									Held = true
 
-									spawn(function() -- Loop check
+									spawn(function()
 										if Entered and not slider_options.readonly then
 											while Held and (not dropdown_open) do
 												local mouse_location = gMouse()
@@ -1372,7 +1372,7 @@ function library:AddWindow(title, options)
 						title.Text = "  " .. keybind_name
 						keybind.Size = UDim2.new(0, gNameLen(title) + 80, 0, 20)
 
-						local shortkeys = { -- thanks to stroketon for helping me out with this
+						local shortkeys = {
 							RightControl = 'RightCtrl',
 							LeftControl = 'LeftCtrl',
 							LeftShift = 'LShift',
@@ -1444,12 +1444,12 @@ function library:AddWindow(title, options)
 								objects.CanvasSize = UDim2.new(0, 0, (#objects:GetChildren() - 1) * 0.1, 0)
 							end
 
-							if open then -- Open
+							if open then
 								if dropdown_open then return end
 								dropdown_open = true
 								Resize(box, {Size = UDim2.new(1, 0, 0, len)}, options.tween_time)
 								Resize(indicator, {Rotation = 90}, options.tween_time)
-							else -- Close
+							else
 								dropdown_open = false
 								Resize(box, {Size = UDim2.new(1, 0, 0, 0)}, options.tween_time)
 								Resize(indicator, {Rotation = -90}, options.tween_time)
@@ -1520,7 +1520,7 @@ function library:AddWindow(title, options)
 						sample.ZIndex = sample.ZIndex + (windows * 10)
 						saturation.ZIndex = saturation.ZIndex + (windows * 10)
 
-						do -- Color Picker Math
+						do
 							local h = 0
 							local s = 1
 							local v = 1
@@ -1566,8 +1566,8 @@ function library:AddWindow(title, options)
 								if inputObject.UserInputType == Enum.UserInputType.MouseButton1 then
 									Held = true
 
-									spawn(function() -- Loop check
-										while Held and Entered1 and (not dropdown_open) do -- Palette
+									spawn(function()
+										while Held and Entered1 and (not dropdown_open) do
 											local mouse_location = gMouse()
 
 											local x = ((palette.AbsoluteSize.X - (mouse_location.X - palette.AbsolutePosition.X)) + 1)
@@ -1583,7 +1583,7 @@ function library:AddWindow(title, options)
 											RS.Heartbeat:Wait()
 										end
 
-										while Held and Entered2 and (not dropdown_open) do -- Saturation
+										while Held and Entered2 and (not dropdown_open) do
 											local mouse_location = gMouse()
 											local y = ((palette.AbsoluteSize.Y - (mouse_location.Y - palette.AbsolutePosition.Y)) + 1.5)
 											v = y / 100
@@ -1644,7 +1644,6 @@ function library:AddWindow(title, options)
 								v.ZIndex = v.ZIndex + (windows * 10) + 1
 							end
 						end
-						Source.Comments.ZIndex = Source.Comments.ZIndex + 1
 
 						do
 							local lua_keywords = {"and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"}
@@ -1653,26 +1652,7 @@ function library:AddWindow(title, options)
 							local Highlight = function(string, keywords)
 								local K = {}
 								local S = string
-								local Token =
-									{
-									["="] = true,
-									["."] = true,
-									[","] = true,
-									["("] = true,
-									[")"] = true,
-									["["] = true,
-									["]"] = true,
-									["{"] = true,
-									["}"] = true,
-									[":"] = true,
-									["*"] = true,
-									["/"] = true,
-									["+"] = true,
-									["-"] = true,
-									["%"] = true,
-									[";"] = true,
-									["~"] = true
-								}
+								local Token = {["="] = true,["."] = true,[","] = true,["("] = true,[")"] = true,["["] = true,["]"] = true,["{"] = true,["}"] = true,[":"] = true,["*"] = true,["/"] = true,["+"] = true,["-"] = true,["%"] = true,[";"] = true,["~"] = true}
 								for i, v in pairs(keywords) do
 									K[v] = true
 								end
@@ -1695,26 +1675,7 @@ function library:AddWindow(title, options)
 							end
 
 							local hTokens = function(string)
-								local Token =
-									{
-									["="] = true,
-									["."] = true,
-									[","] = true,
-									["("] = true,
-									[")"] = true,
-									["["] = true,
-									["]"] = true,
-									["{"] = true,
-									["}"] = true,
-									[":"] = true,
-									["*"] = true,
-									["/"] = true,
-									["+"] = true,
-									["-"] = true,
-									["%"] = true,
-									[";"] = true,
-									["~"] = true
-								}
+								local Token = {["="] = true,["."] = true,[","] = true,["("] = true,[")"] = true,["["] = true,["]"] = true,["{"] = true,["}"] = true,[":"] = true,["*"] = true,["/"] = true,["+"] = true,["-"] = true,["%"] = true,[";"] = true,["~"] = true}
 								local A = ""
 								string:gsub(".", function(c)
 									if Token[c] ~= nil then
@@ -1727,7 +1688,6 @@ function library:AddWindow(title, options)
 										A = A .. "\32"
 									end
 								end)
-
 								return A
 							end
 
@@ -1752,7 +1712,6 @@ function library:AddWindow(title, options)
 										highlight = highlight .. "\32"
 									end
 								end)
-
 								return highlight
 							end
 
@@ -1777,7 +1736,6 @@ function library:AddWindow(title, options)
 										highlight = highlight .. "\32"
 									end
 								end)
-
 								return highlight
 							end
 
@@ -1797,9 +1755,7 @@ function library:AddWindow(title, options)
 											ret = ret .. "\32"
 										end
 									end)
-									ret = ret
 								end)
-
 								return ret
 							end
 
@@ -1816,18 +1772,8 @@ function library:AddWindow(title, options)
 										A = A .. "\32"
 									end
 								end)
-
 								return A
 							end
-
-                            local function highlight_logs(s)
-                                local result = s
-                                for _, name in ipairs({"print","warn","error","console.log"}) do
-                                    local pat = name:gsub("%.", "%%.")
-                                    result = result:gsub(pat .. "%s*%b()", '<font color="rgb(130,255,170)">%0</font>')
-                                end
-                                return result
-                            end
 
 							local highlight_lua = function(type)
 								if type == "Text" then
@@ -1855,54 +1801,11 @@ function library:AddWindow(title, options)
 
 									sf.CanvasSize = UDim2.new(0, 0, lin * 0.153846154, 0)
 								end
-
-								local highlight_logs = function(type)
-                                    if type == "Text" then
-                                        Source.Text = Source.Text:gsub("\13", "")
-                                        Source.Text = Source.Text:gsub("\t", "      ")
-                                        local s = Source.Text
-                                        Source.Keywords.Text     = Highlight(s, lua_keywords)
-                                        Source.Globals.Text      = Highlight(s, global_env)
-                                        Source.RemoteHighlight.Text = Highlight(s, {"FireServer", "fireServer", "InvokeServer", "invokeServer"})
-                                        Source.Tokens.Text       = hTokens(s)
-                                        Source.Numbers.Text      = numbers(s)
-                                        Source.Strings.Text      = strings(s)
-                                        Source.Comments.Text     = comments(s)
-                                        Source.Logs.Text = highlight_logs(s)
-                                        local lin = 1
-                                        s:gsub("\n", function() lin = lin + 1 end)
-                                        Lines.Text = ""
-                                        for i = 1, lin do
-                                            Lines.Text = Lines.Text .. i .. "\n"
-                                        end
-
-                                        sf.CanvasSize = UDim2.new(0, 0, lin * 0.153846154, 0)
-                                    end
-								end
-								if type == "Text" then
-									Source.Text = Source.Text:gsub("\13", "")
-									Source.Text = Source.Text:gsub("\t", "      ")
-									local s = Source.Text
-
-									Source.Info.Text = info(s)
-
-									local lin = 1
-									s:gsub("\n", function()
-										lin = lin + 1
-									end)
-
-									sf.CanvasSize = UDim2.new(0, 0, lin * 0.153846154, 0)
-								end
 							end
 
 							if console_options.source == "Lua" then
 								highlight_lua("Text")
 								Source.Changed:Connect(highlight_lua)
-							elseif console_options.source == "Logs" then
-								Lines.Visible = false
-
-								highlight_logs("Text")
-								Source.Changed:Connect(highlight_logs)
 							end
 
 							function console_data:Set(code)
@@ -1946,7 +1849,7 @@ function library:AddWindow(title, options)
 						return ha_data, ha
 					end
 
-					function tab_data:AddFolder(folder_name) -- [Folder]
+					function tab_data:AddFolder(folder_name)
 						local folder_data = {}
 
 						folder_name = tostring(folder_name or "New Folder")
@@ -1985,10 +1888,10 @@ function library:AddWindow(title, options)
 
 						local open = false
 						button.MouseButton1Click:Connect(function()
-							if open then -- Close
+							if open then
 								Resize(toggle, {Rotation = 0}, options.tween_time)
 								objects.Visible = false
-							else -- Open
+							else
 								Resize(toggle, {Rotation = 90}, options.tween_time)
 								objects.Visible = true
 							end
@@ -2046,4 +1949,3 @@ local window = library:AddWindow("INVINCIBLE | PRIVATE KILLING", {
 	min_size = Vector2.new(500, 870),
 	can_resize = false,
 })
- 
