@@ -142,7 +142,7 @@ toggle.Position = UDim2.new(0, 5, 0, -2)
 toggle.Rotation = 90
 toggle.Size = UDim2.new(0, 20, 0, 20)
 toggle.ZIndex = 2
-toggle.Image = "rbxassetid://110365617951180"
+toggle.Image = "rbxassetid://134779663895595"
 
 base.Name = "Base"
 base.Parent = bar
@@ -317,7 +317,7 @@ circle.Name = "Circle"
 circle.Parent = prefabs
 circle.BackgroundColor3 = Color3.new(1, 1, 1)
 circle.BackgroundTransparency = 1
-circle.Image = "rbxassetid://110365617951180"
+circle.Image = "rbxassetid://266543268"
 circle.ImageTransparency = 0.5
 
 uiListLayout3.Parent = prefabs
@@ -347,7 +347,7 @@ dropdownIndicator.Position = UDim2.new(0.899999976, -10, 0.100000001, 0)
 dropdownIndicator.Rotation = -90
 dropdownIndicator.Size = UDim2.new(0, 15, 0, 15)
 dropdownIndicator.ZIndex = 2
-dropdownIndicator.Image = "rbxassetid://110365617951180"
+dropdownIndicator.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4744658743"
 
 dropdownBox.Name = "Box"
 dropdownBox.Parent = dropdown
@@ -447,7 +447,7 @@ toggle2.BackgroundColor3 = Color3.new(1, 1, 1)
 toggle2.BackgroundTransparency = 1
 toggle2.Position = UDim2.new(0, 5, 0, 0)
 toggle2.Size = UDim2.new(0, 20, 0, 20)
-toggle2.Image = "rbxassetid://110365617951180"
+toggle2.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4731371541"
 
 objects2.Name = "Objects"
 objects2.Parent = folder
@@ -477,7 +477,7 @@ console.Parent = prefabs
 console.BackgroundColor3 = Color3.new(1, 1, 1)
 console.BackgroundTransparency = 1
 console.Size = UDim2.new(1, 0, 0, 200)
-console.Image = "rbxassetid://110365617951180"
+console.Image = "rbxassetid://2851928141"
 console.ImageColor3 = Color3.new(0.129412, 0.133333, 0.141176)
 console.ScaleType = Enum.ScaleType.Slice
 console.SliceCenter = Rect.new(8, 8, 8, 8)
@@ -643,7 +643,7 @@ palette.BackgroundColor3 = Color3.new(1, 1, 1)
 palette.BackgroundTransparency = 1
 palette.Position = UDim2.new(0.0500000007, 0, 0.0500000007, 0)
 palette.Size = UDim2.new(0, 100, 0, 100)
-palette.Image = "rbxassetid://110365617951180"
+palette.Image = "rbxassetid://698052001"
 palette.ScaleType = Enum.ScaleType.Slice
 palette.SliceCenter = Rect.new(4, 4, 4, 4)
 
@@ -673,7 +673,7 @@ saturation.Parent = colorPicker
 saturation.BackgroundColor3 = Color3.new(1, 1, 1)
 saturation.Position = UDim2.new(0.649999976, 0, 0.0500000007, 0)
 saturation.Size = UDim2.new(0, 15, 0, 100)
-saturation.Image = "rbxassetid://110365617951180"
+saturation.Image = "rbxassetid://3641079629"
 
 indicator4.Name = "Indicator"
 indicator4.Parent = saturation
