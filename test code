@@ -2042,8 +2042,8 @@ function library:AddWindow(title, options)
 end
 
 local window = library:AddWindow("INVINCIBLE | PRIVATE KILLING", {
-	main_color = Color3.fromRGB(41, 74, 122),
-	min_size = Vector2.new(250, 346),
+	main_color = Color3.fromRGB(0, 0, 10),
+	min_size = Vector2.new(500, 870),
 	can_resize = false,
 })
  
