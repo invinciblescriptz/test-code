@@ -447,7 +447,7 @@ toggle2.BackgroundColor3 = Color3.new(1, 1, 1)
 toggle2.BackgroundTransparency = 1
 toggle2.Position = UDim2.new(0, 5, 0, 0)
 toggle2.Size = UDim2.new(0, 20, 0, 20)
-toggle2.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4731371541"
+toggle2.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=92688567593147"
 
 objects2.Name = "Objects"
 objects2.Parent = folder
