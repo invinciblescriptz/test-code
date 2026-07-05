@@ -347,7 +347,7 @@ dropdownIndicator.Position = UDim2.new(0.899999976, -10, 0.100000001, 0)
 dropdownIndicator.Rotation = -90
 dropdownIndicator.Size = UDim2.new(0, 15, 0, 15)
 dropdownIndicator.ZIndex = 2
-dropdownIndicator.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4744658743"
+dropdownIndicator.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=92688567593147"
 
 dropdownBox.Name = "Box"
 dropdownBox.Parent = dropdown
