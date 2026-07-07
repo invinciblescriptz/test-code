@@ -1,14 +1,15 @@
--- VOID UI - Full Black Library (One Chunk)
+-- VOID UI - Full Black Library (One Chunk) + Draggable
 local VoidUI = {}
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
 local THEME = {
-	Background = Color3.fromRGB(8, 8, 8),
-	Surface = Color3.fromRGB(15, 15, 15),
-	Surface2 = Color3.fromRGB(25, 25, 25),
-	Accent = Color3.fromRGB(0, 255, 157),
-	Text = Color3.fromRGB(240, 240, 240),
+    Background = Color3.fromRGB(8, 8, 8),
+    Surface = Color3.fromRGB(15, 15, 15),
+    Surface2 = Color3.fromRGB(25, 25, 25),
+    Accent = Color3.fromRGB(255, 255, 255),
+    Text = Color3.fromRGB(255, 255, 255),
 }
 
 -- Create ScreenGui
@@ -19,13 +20,12 @@ screen.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Create Window
 local window = Instance.new("Frame")
-window.Name = "VoidWindow"
+window.Name = "window"
 window.Size = UDim2.new(0, 440, 0, 580)
 window.Position = UDim2.new(0.5, -220, 0.5, -290)
 window.BackgroundColor3 = THEME.Background
 window.BorderSizePixel = 0
 window.Parent = screen
-
 Instance.new("UICorner", window).CornerRadius = UDim.new(0, 16)
 
 local stroke = Instance.new("UIStroke")
@@ -33,13 +33,12 @@ stroke.Color = Color3.fromRGB(40, 40, 40)
 stroke.Thickness = 1.5
 stroke.Parent = window
 
--- Title Bar
+-- Title Bar (Used for dragging)
 local titleBar = Instance.new("Frame")
 titleBar.Size = UDim2.new(1, 0, 0, 60)
 titleBar.BackgroundColor3 = THEME.Surface
 titleBar.BorderSizePixel = 0
 titleBar.Parent = window
-
 Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 16)
 
 local title = Instance.new("TextLabel")
@@ -52,6 +51,43 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 22
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = titleBar
+
+-- ==================== DRAG FUNCTIONALITY ====================
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = window.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input == dragInput) then
+        updateInput(input)
+    end
+end)
 
 -- Scrolling Container
 local scrolling = Instance.new("ScrollingFrame")
@@ -68,124 +104,119 @@ listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Parent = scrolling
 
 -- BUTTON
-local function CreateButton(text, callback)
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, 0, 0, 55)
-	btn.BackgroundColor3 = THEME.Surface2
-	btn.Text = text
-	btn.TextColor3 = THEME.Text
-	btn.Font = Enum.Font.GothamSemibold
-	btn.TextSize = 17
-	btn.Parent = scrolling
-	
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-	
-	local s = Instance.new("UIStroke")
-	s.Color = THEME.Accent
-	s.Transparency = 0.65
-	s.Parent = btn
-	
-	btn.MouseButton1Click:Connect(function()
-		callback()
-		TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.Accent}):Play()
-		task.wait(0.12)
-		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = THEME.Surface2}):Play()
-	end)
+local function CreateButton(parent, text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 55)
+    btn.BackgroundColor3 = THEME.Surface2
+    btn.Text = text
+    btn.TextColor3 = THEME.Text
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 17
+    btn.Parent = parent or scrolling
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+    
+    local s = Instance.new("UIStroke")
+    s.Color = THEME.Accent
+    s.Transparency = 0.65
+    s.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        callback()
+        TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.Accent}):Play()
+        task.wait(0.12)
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = THEME.Surface2}):Play()
+    end)
 end
 
--- TOGGLE
+-- TOGGLE (unchanged)
 local function CreateToggle(text, default, callback)
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(1, 0, 0, 55)
-	frame.BackgroundTransparency = 1
-	frame.Parent = scrolling
-	
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(0.65, 0, 1, 0)
-	label.BackgroundTransparency = 1
-	label.Text = text
-	label.TextColor3 = THEME.Text
-	label.Font = Enum.Font.GothamSemibold
-	label.TextSize = 17
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Parent = frame
-	
-	local toggle = Instance.new("TextButton")
-	toggle.Size = UDim2.new(0, 65, 0, 34)
-	toggle.Position = UDim2.new(1, -75, 0.5, -17)
-	toggle.BackgroundColor3 = default and THEME.Accent or THEME.Surface2
-	toggle.Text = ""
-	toggle.Parent = frame
-	
-	Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
-	
-	local knob = Instance.new("Frame")
-	knob.Size = UDim2.new(0, 27, 0, 27)
-	knob.Position = default and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)
-	knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
-	knob.Parent = toggle
-	Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-	
-	local state = default
-	
-	toggle.MouseButton1Click:Connect(function()
-		state = not state
-		TweenService:Create(toggle, TweenInfo.new(0.25), {BackgroundColor3 = state and THEME.Accent or THEME.Surface2}):Play()
-		TweenService:Create(knob, TweenInfo.new(0.25), {Position = state and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)}):Play()
-		callback(state)
-	end)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 55)
+    frame.BackgroundTransparency = 1
+    frame.Parent = scrolling
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.65, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = THEME.Text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 17
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 65, 0, 34)
+    toggle.Position = UDim2.new(1, -75, 0.5, -17)
+    toggle.BackgroundColor3 = default and THEME.Accent or THEME.Surface2
+    toggle.Text = ""
+    toggle.Parent = frame
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
+
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 27, 0, 27)
+    knob.Position = default and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)
+    knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    knob.Parent = toggle
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    local state = default
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        TweenService:Create(toggle, TweenInfo.new(0.25), {BackgroundColor3 = state and THEME.Accent or THEME.Surface2}):Play()
+        TweenService:Create(knob, TweenInfo.new(0.25), {Position = state and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)}):Play()
+        callback(state)
+    end)
 end
 
 -- FOLDER
 local function CreateFolder(name)
-	local folderFrame = Instance.new("Frame")
-	folderFrame.Size = UDim2.new(1, 0, 0, 50)
-	folderFrame.BackgroundColor3 = THEME.Surface
-	folderFrame.Parent = scrolling
-	Instance.new("UICorner", folderFrame).CornerRadius = UDim.new(0, 12)
-	
-	local header = Instance.new("TextButton")
-	header.Size = UDim2.new(1, 0, 0, 50)
-	header.BackgroundTransparency = 1
-	header.Text = " ▼  " .. name
-	header.TextColor3 = THEME.Text
-	header.Font = Enum.Font.GothamBold
-	header.TextSize = 17
-	header.TextXAlignment = Enum.TextXAlignment.Left
-	header.Parent = folderFrame
-	
-	local content = Instance.new("Frame")
-	content.Size = UDim2.new(1, 0, 0, 0)
-	content.Position = UDim2.new(0, 0, 0, 50)
-	content.BackgroundTransparency = 1
-	content.ClipsDescendants = true
-	content.Parent = folderFrame
-	
-	Instance.new("UIListLayout", content).Padding = UDim.new(0, 10)
-	
-	local open = false
-	header.MouseButton1Click:Connect(function()
-		open = not open
-		header.Text = open and " ▲  " .. name or " ▼  " .. name
-		local height = open and content:FindFirstChildWhichIsA("UIListLayout").AbsoluteContentSize.Y + 30 or 0
-		TweenService:Create(content, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {Size = UDim2.new(1,0,0,height)}):Play()
-	end)
-	
-	return content
+    local folderFrame = Instance.new("Frame")
+    folderFrame.Size = UDim2.new(1, 0, 0, 50)
+    folderFrame.BackgroundColor3 = THEME.Surface
+    folderFrame.Parent = scrolling
+    Instance.new("UICorner", folderFrame).CornerRadius = UDim.new(0, 12)
+
+    local header = Instance.new("TextButton")
+    header.Size = UDim2.new(1, 0, 0, 50)
+    header.BackgroundTransparency = 1
+    header.Text = " ▼ " .. name
+    header.TextColor3 = THEME.Text
+    header.Font = Enum.Font.GothamBold
+    header.TextSize = 17
+    header.TextXAlignment = Enum.TextXAlignment.Left
+    header.Parent = folderFrame
+
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, 0, 0, 0)
+    content.Position = UDim2.new(0, 0, 0, 50)
+    content.BackgroundTransparency = 1
+    content.ClipsDescendants = true
+    content.Parent = folderFrame
+    Instance.new("UIListLayout", content).Padding = UDim.new(0, 10)
+
+    local open = false
+    header.MouseButton1Click:Connect(function()
+        open = not open
+        header.Text = open and " ▲ " .. name or " ▼ " .. name
+        local height = open and content:FindFirstChildWhichIsA("UIListLayout").AbsoluteContentSize.Y + 30 or 0
+        TweenService:Create(content, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {Size = UDim2.new(1,0,0,height)}):Play()
+    end)
+
+    return content
 end
 
 -- ==================== EXAMPLES ====================
-
-CreateButton("Launch Script", function()
-	print("🚀 Script Activated!")
+CreateButton(nil, "Launch Script", function()
+    print("🚀 Script Activated!")
 end)
 
 CreateToggle("Fly Mode", false, function(state)
-	print("Fly Mode:", state)
+    print("Fly Mode:", state)
 end)
 
 CreateToggle("God Mode", true, function(state)
-	print("God Mode:", state)
+    print("God Mode:", state)
 end)
 
 local settings = CreateFolder("Settings")
@@ -195,4 +226,4 @@ CreateButton(settings, "Speed Boost", function() print("Speed Boosted") end)
 local tools = CreateFolder("Tools")
 CreateButton(tools, "Give Tool", function() print("Tool Given") end)
 
-print("VOID UI Loaded - Very Black Theme Ready")
+print("VOID UI Loaded - Very Black Theme + Draggable Ready")
