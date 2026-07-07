@@ -1,6 +1,6 @@
--- CoolUI Library for Roblox
--- A modern, neon-styled UI library with smooth animations
--- Usage: local CoolUI = require(path.to.this.module)
+-- =============================================
+-- COOLUI LIBRARY - FULL SELF-CONTAINED VERSION
+-- =============================================
 
 local CoolUI = {}
 CoolUI.__index = CoolUI
@@ -9,336 +9,211 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local THEME = {
-    Background = Color3.fromRGB(15, 15, 20),
-    Primary = Color3.fromRGB(0, 255, 200),      -- Neon Cyan
-    Secondary = Color3.fromRGB(255, 50, 150),   -- Neon Pink
-    Accent = Color3.fromRGB(100, 200, 255),
-    Text = Color3.fromRGB(240, 240, 250),
-    TextDim = Color3.fromRGB(180, 180, 200),
-    Stroke = Color3.fromRGB(0, 255, 200),
+    Background = Color3.fromRGB(18, 18, 24),
+    Primary = Color3.fromRGB(0, 255, 200),
+    Secondary = Color3.fromRGB(255, 40, 140),
+    Text = Color3.fromRGB(245, 245, 255),
 }
 
 local TWEEN_INFO = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-local FAST_TWEEN = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
--- Create base ScreenGui if needed
-function CoolUI:Init(parent)
-    local screenGui = Instance.new("ScreenGui")
+-- Initialize
+function CoolUI:Init()
+    local player = game.Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    local screenGui = playerGui:FindFirstChild("CoolUI") or Instance.new("ScreenGui")
     screenGui.Name = "CoolUI"
     screenGui.ResetOnSpawn = false
-    screenGui.Parent = parent or (game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+    screenGui.Parent = playerGui
     self.ScreenGui = screenGui
-    return screenGui
 end
 
--- Create a glowing frame
-function CoolUI:CreateWindow(title, size, position)
+-- Create Window
+function CoolUI:CreateWindow(title)
     local window = Instance.new("Frame")
-    window.Name = "Window"
-    window.Size = size or UDim2.new(0, 400, 0, 300)
-    window.Position = position or UDim2.new(0.5, -200, 0.5, -150)
+    window.Name = "CoolWindow"
+    window.Size = UDim2.new(0, 420, 0, 380)
+    window.Position = UDim2.new(0.5, -210, 0.5, -190)
     window.BackgroundColor3 = THEME.Background
     window.BorderSizePixel = 0
     window.Active = true
     window.Draggable = true
-    window.Parent = self.ScreenGui or game.Players.LocalPlayer.PlayerGui:FindFirstChild("CoolUI")
-    
-    -- Glow effect using UIStroke + multiple layers
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = window
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = THEME.Stroke
-    stroke.Thickness = 2
-    stroke.Transparency = 0.3
-    stroke.Parent = window
-    
-    -- Inner glow
-    local innerStroke = Instance.new("UIStroke")
-    innerStroke.Color = THEME.Primary
-    innerStroke.Thickness = 1
-    innerStroke.Transparency = 0.7
-    innerStroke.Parent = window
-    
-    -- Title bar
+    window.Parent = self.ScreenGui
+
+    Instance.new("UICorner", window).CornerRadius = UDim.new(0, 14)
+
+    local stroke = Instance.new("UIStroke", window)
+    stroke.Color = THEME.Primary
+    stroke.Thickness = 2.5
+    stroke.Transparency = 0.35
+
+    -- Title Bar
     local titleBar = Instance.new("Frame")
-    titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.Size = UDim2.new(1, 0, 0, 46)
     titleBar.BackgroundColor3 = THEME.Background
     titleBar.BorderSizePixel = 0
     titleBar.Parent = window
-    
-    local titleCorner = Instance.new("UICorner")
-    titleCorner.CornerRadius = UDim.new(0, 12)
-    titleCorner.Parent = titleBar
-    
+
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 14)
+
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -80, 1, 0)
+    titleLabel.Size = UDim2.new(1, -100, 1, 0)
+    titleLabel.Position = UDim2.new(0, 20, 0, 0)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title or "CoolUI Window"
+    titleLabel.Text = title or "CoolUI"
     titleLabel.TextColor3 = THEME.Text
-    titleLabel.TextScaled = true
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextScaled = true
     titleLabel.Parent = titleBar
-    
-    -- Close button
+
+    -- Close Button
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -35, 0, 5)
+    closeBtn.Size = UDim2.new(0, 34, 0, 34)
+    closeBtn.Position = UDim2.new(1, -42, 0.5, -17)
     closeBtn.BackgroundColor3 = THEME.Secondary
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = Color3.new(1,1,1)
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.TextScaled = true
     closeBtn.Parent = titleBar
-    
-    local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(1, 0)
-    closeCorner.Parent = closeBtn
-    
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1, 0)
+
     closeBtn.MouseButton1Click:Connect(function()
-        window:TweenSize(UDim2.new(0,0,0,0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
-        game:GetService("Debris"):AddItem(window, 0.4)
+        window:TweenSize(UDim2.new(0,0,0,0), "Out", "Quad", 0.3, true)
+        game:GetService("Debris"):AddItem(window, 0.35)
     end)
-    
-    -- Content frame
-    local content = Instance.new("Frame")
+
+    -- Content Scrolling Frame
+    local content = Instance.new("ScrollingFrame")
     content.Name = "Content"
-    content.Size = UDim2.new(1, -20, 1, -60)
-    content.Position = UDim2.new(0, 10, 0, 50)
+    content.Size = UDim2.new(1, -24, 1, -66)
+    content.Position = UDim2.new(0, 12, 0, 56)
     content.BackgroundTransparency = 1
+    content.ScrollBarThickness = 6
+    content.ScrollBarImageColor3 = THEME.Primary
+    content.CanvasSize = UDim2.new(0, 0, 0, 0)
     content.Parent = window
-    
-    local listLayout = Instance.new("UIListLayout")
-    listLayout.Padding = UDim.new(0, 8)
+
+    local listLayout = Instance.new("UIListLayout", content)
+    listLayout.Padding = UDim.new(0, 12)
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    listLayout.Parent = content
-    
+
+    local padding = Instance.new("UIPadding", content)
+    padding.PaddingLeft = UDim.new(0, 4)
+    padding.PaddingRight = UDim.new(0, 8)
+
     window:SetAttribute("Content", content)
-    
+
     return window
 end
 
--- Neon Button
+-- Button
 function CoolUI:CreateButton(parent, text, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 45)
+    btn.Size = UDim2.new(1, -8, 0, 52)
     btn.BackgroundColor3 = THEME.Primary
     btn.Text = text or "Button"
-    btn.TextColor3 = Color3.new(0,0,0)
+    btn.TextColor3 = Color3.new(0, 0, 0)
     btn.Font = Enum.Font.GothamBold
     btn.TextScaled = true
     btn.Parent = parent
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = btn
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.new(1,1,1)
-    stroke.Thickness = 2
-    stroke.Transparency = 0.6
-    stroke.Parent = btn
-    
-    -- Hover effect
-    local hoverTweenIn = TweenService:Create(btn, TWEEN_INFO, {BackgroundColor3 = THEME.Secondary})
-    local hoverTweenOut = TweenService:Create(btn, TWEEN_INFO, {BackgroundColor3 = THEME.Primary})
-    
-    btn.MouseEnter:Connect(function()
-        hoverTweenIn:Play()
-    end)
-    
-    btn.MouseLeave:Connect(function()
-        hoverTweenOut:Play()
-    end)
-    
+
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+    Instance.new("UIStroke", btn).Color = Color3.new(1,1,1)
+
     btn.MouseButton1Click:Connect(function()
         if callback then callback() end
         
         -- Click animation
-        btn.Size = UDim2.new(1, -10, 0, 40)
-        TweenService:Create(btn, FAST_TWEEN, {Size = UDim2.new(1, 0, 0, 45)}):Play()
+        local originalSize = btn.Size
+        btn.Size = UDim2.new(1, -20, 0, 48)
+        TweenService:Create(btn, TweenInfo.new(0.2), {Size = originalSize}):Play()
     end)
-    
+
     return btn
 end
 
--- Toggle Switch
+-- Toggle
 function CoolUI:CreateToggle(parent, text, default, callback)
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, 0, 0, 50)
-    container.BackgroundTransparency = 1
-    container.Parent = parent
-    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -8, 0, 50)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.7, 0, 1, 0)
+    label.Size = UDim2.new(0.65, 0, 1, 0)
     label.BackgroundTransparency = 1
     label.Text = text or "Toggle"
     label.TextColor3 = THEME.Text
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Font = Enum.Font.Gotham
     label.TextScaled = true
-    label.Parent = container
-    
+    label.Parent = frame
+
     local switch = Instance.new("Frame")
-    switch.Size = UDim2.new(0, 60, 0, 30)
-    switch.Position = UDim2.new(1, -70, 0.5, -15)
-    switch.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-    switch.Parent = container
-    
-    local switchCorner = Instance.new("UICorner")
-    switchCorner.CornerRadius = UDim.new(1, 0)
-    switchCorner.Parent = switch
-    
+    switch.Size = UDim2.new(0, 68, 0, 32)
+    switch.Position = UDim2.new(1, -78, 0.5, -16)
+    switch.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+    switch.Parent = frame
+
+    Instance.new("UICorner", switch).CornerRadius = UDim.new(1, 0)
+
     local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 26, 0, 26)
-    knob.Position = UDim2.new(0, 2, 0.5, -13)
+    knob.Size = UDim2.new(0, 28, 0, 28)
+    knob.Position = UDim2.new(0, 2, 0.5, -14)
     knob.BackgroundColor3 = Color3.new(1,1,1)
     knob.Parent = switch
-    
-    local knobCorner = Instance.new("UICorner")
-    knobCorner.CornerRadius = UDim.new(1, 0)
-    knobCorner.Parent = knob
-    
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
     local state = default or false
-    
-    local function updateVisual()
+
+    local function update()
         if state then
             TweenService:Create(switch, TWEEN_INFO, {BackgroundColor3 = THEME.Primary}):Play()
-            TweenService:Create(knob, TWEEN_INFO, {Position = UDim2.new(1, -28, 0.5, -13)}):Play()
+            TweenService:Create(knob, TWEEN_INFO, {Position = UDim2.new(1, -30, 0.5, -14)}):Play()
         else
-            TweenService:Create(switch, TWEEN_INFO, {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
-            TweenService:Create(knob, TWEEN_INFO, {Position = UDim2.new(0, 2, 0.5, -13)}):Play()
+            TweenService:Create(switch, TWEEN_INFO, {BackgroundColor3 = Color3.fromRGB(50,50,55)}):Play()
+            TweenService:Create(knob, TWEEN_INFO, {Position = UDim2.new(0, 2, 0.5, -14)}):Play()
         end
+        if callback then callback(state) end
     end
-    
-    updateVisual()
-    
+
+    update()
+
     switch.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             state = not state
-            updateVisual()
-            if callback then callback(state) end
+            update()
         end
     end)
-    
-    return container
+
+    return frame
 end
 
--- Slider
-function CoolUI:CreateSlider(parent, text, min, max, default, callback)
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, 0, 0, 70)
-    container.BackgroundTransparency = 1
-    container.Parent = parent
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 0, 20)
-    label.BackgroundTransparency = 1
-    label.Text = text or "Slider"
-    label.TextColor3 = THEME.Text
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Font = Enum.Font.Gotham
-    label.TextScaled = true
-    label.Parent = container
-    
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Size = UDim2.new(1, 0, 0, 20)
-    valueLabel.Position = UDim2.new(0, 0, 0, 20)
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.TextColor3 = THEME.Accent
-    valueLabel.Font = Enum.Font.GothamBold
-    valueLabel.TextScaled = true
-    valueLabel.Parent = container
-    
-    local bar = Instance.new("Frame")
-    bar.Size = UDim2.new(1, 0, 0, 8)
-    bar.Position = UDim2.new(0, 0, 0, 48)
-    bar.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    bar.Parent = container
-    
-    local barCorner = Instance.new("UICorner")
-    barCorner.CornerRadius = UDim.new(1, 0)
-    barCorner.Parent = bar
-    
-    local fill = Instance.new("Frame")
-    fill.Size = UDim2.new(0.5, 0, 1, 0)
-    fill.BackgroundColor3 = THEME.Primary
-    fill.Parent = bar
-    
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(1, 0)
-    fillCorner.Parent = fill
-    
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 20, 0, 20)
-    knob.Position = UDim2.new(0.5, -10, 0.5, -10)
-    knob.BackgroundColor3 = THEME.Primary
-    knob.Parent = bar
-    
-    local knobCorner = Instance.new("UICorner")
-    knobCorner.CornerRadius = UDim.new(1, 0)
-    knobCorner.Parent = knob
-    
-    local value = default or min
-    local dragging = false
-    
-    local function updateSlider()
-        local percent = (value - min) / (max - min)
-        fill.Size = UDim2.new(percent, 0, 1, 0)
-        knob.Position = UDim2.new(percent, -10, 0.5, -10)
-        valueLabel.Text = string.format("%.1f", value)
-        if callback then callback(value) end
-    end
-    
-    updateSlider()
-    
-    -- Drag functionality
-    knob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mousePos = UserInputService:GetMouseLocation()
-            local barPos = bar.AbsolutePosition
-            local barSize = bar.AbsoluteSize.X
-            
-            local percent = math.clamp((mousePos.X - barPos.X) / barSize, 0, 1)
-            value = min + (max - min) * percent
-            updateSlider()
-        end
-    end)
-    
-    return container
-end
+-- =============================================
+-- EXAMPLE USAGE
+-- =============================================
 
--- Example usage (remove or comment out in production)
---[[
-local screen = CoolUI:Init()
+CoolUI:Init()
 
-local win = CoolUI:CreateWindow("Neon Dashboard", UDim2.new(0, 420, 0, 380))
+local window = CoolUI:CreateWindow("Neon Dashboard")
 
-CoolUI:CreateButton(win.Content, "Click Me!", function()
-    print("Button clicked!")
+CoolUI:CreateButton(window.Content, "Test Button", function()
+    print("✅ Button clicked!")
 end)
 
-CoolUI:CreateToggle(win.Content, "Enable Effects", true, function(state)
-    print("Toggle:", state)
+CoolUI:CreateButton(window.Content, "Another Cool Button", function()
+    warn("🔥 Second button works!")
 end)
 
-CoolUI:CreateSlider(win.Content, "Volume", 0, 100, 50, function(val)
-    print("Volume:", val)
+CoolUI:CreateToggle(window.Content, "Enable Glow Effects", true, function(state)
+    print("Toggle changed to:", state)
 end)
---]]
 
-return CoolUI
+CoolUI:CreateToggle(window.Content, "Dark Mode", false, function(state)
+    print("Dark Mode:", state)
+end)
+
+print("CoolUI Loaded Successfully!")
