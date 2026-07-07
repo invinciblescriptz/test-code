@@ -1,26 +1,30 @@
-local VoidUI = {} 
-local TweenService = game:GetService("TweenService") 
-local Players = game:GetService("Players") 
-local UserInputService = game:GetService("UserInputService") 
-local ReplicatedStorage = game:GetService("ReplicatedStorage") 
-local RunService = game:GetService("RunService") 
-local TeleportService = game:GetService("TeleportService") 
-local LocalPlayer = Players.LocalPlayer 
+-- =============================================
+-- VOID STRONGMAN SIMULATOR - FULL SCRIPT
+-- Your exact UI + Functional Features
+-- =============================================
 
-local THEME = { 
-    Background = Color3.fromRGB(8, 8, 8), 
-    Surface = Color3.fromRGB(15, 15, 15), 
-    Surface2 = Color3.fromRGB(25, 25, 25), 
-    Accent = Color3.fromRGB(0, 255, 100), 
-    Text = Color3.fromRGB(255, 255, 255), 
-} 
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local LocalPlayer = Players.LocalPlayer
+
+local THEME = {
+    Background = Color3.fromRGB(8, 8, 8),
+    Surface = Color3.fromRGB(15, 15, 15),
+    Surface2 = Color3.fromRGB(25, 25, 25),
+    Accent = Color3.fromRGB(0, 255, 100),
+    Text = Color3.fromRGB(255, 255, 255),
+}
 
 -- Variables
+local connections = {}
 local autoFarm = false
 local autoWorkout = false
 local autoRebirth = false
-local autoSell = false
-local autoBuyUpgrades = false
 local walkspeedEnabled = false
 local targetWalkSpeed = 120
 local jumpPowerEnabled = false
@@ -28,9 +32,7 @@ local targetJumpPower = 250
 local antiAFK = false
 local workoutMultiplier = 1
 
-local connections = {}
-
--- ==================== YOUR ORIGINAL UI CODE ====================
+-- ==================== YOUR ORIGINAL UI ====================
 
 local screen = Instance.new("ScreenGui")
 screen.Name = "VoidUI"
@@ -78,11 +80,9 @@ minimizeBtn.TextColor3 = THEME.Text
 minimizeBtn.Font = Enum.Font.GothamBold
 minimizeBtn.TextSize = 28
 minimizeBtn.Parent = titleBar
-local minimizeCorner = Instance.new("UICorner")
-minimizeCorner.CornerRadius = UDim.new(0, 8)
-minimizeCorner.Parent = minimizeBtn
+Instance.new("UICorner", minimizeBtn).CornerRadius = UDim.new(0, 8)
 
--- DRAG FUNCTIONALITY
+-- DRAG
 local dragging = false
 local dragInput
 local dragStart
@@ -99,9 +99,7 @@ titleBar.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPos = window.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
         end)
     end
 end)
@@ -113,9 +111,7 @@ titleBar.InputChanged:Connect(function(input)
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input == dragInput) then
-        updateInput(input)
-    end
+    if dragging and (input == dragInput) then updateInput(input) end
 end)
 
 local scrolling = Instance.new("ScrollingFrame")
@@ -131,7 +127,7 @@ listLayout.Padding = UDim.new(0, 12)
 listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Parent = scrolling
 
--- MINIMIZE FUNCTION
+-- MINIMIZE
 local isMinimized = false
 local originalSize = UDim2.new(0, 440, 0, 580)
 local minimizedSize = UDim2.new(0, 440, 0, 60)
@@ -151,7 +147,7 @@ local function toggleMinimize()
 end
 minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
 
--- UI FUNCTIONS
+-- UI Functions (Your Original)
 local function CreateButton(parent, text, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 0, 55)
@@ -162,10 +158,7 @@ local function CreateButton(parent, text, callback)
     btn.TextSize = 17
     btn.Parent = parent or scrolling
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-    local s = Instance.new("UIStroke")
-    s.Color = THEME.Accent
-    s.Transparency = 0.65
-    s.Parent = btn
+    local s = Instance.new("UIStroke") s.Color = THEME.Accent s.Transparency = 0.65 s.Parent = btn
     btn.MouseButton1Click:Connect(function()
         callback()
         TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.Accent}):Play()
@@ -227,39 +220,36 @@ local function CreateLabel(text)
     return label
 end
 
--- ==================== STRONGMAN FEATURES ====================
+-- ==================== WORKING FEATURES ====================
 
-local function getCharacter()
+local function getChar()
     return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 end
 
 CreateLabel("=== AUTO FARMING ===")
 
-CreateToggle("Auto Farm Energy", false, function(state)
+CreateToggle("Auto Farm (Lift)", false, function(state)
     autoFarm = state
     if state then
         connections.farm = RunService.Heartbeat:Connect(function()
             if not autoFarm then return end
-            local char = getCharacter()
-            local root = char:FindFirstChild("HumanoidRootPart")
+            local root = getChar():FindFirstChild("HumanoidRootPart")
             if not root then return end
-            
-            for _, obj in ipairs(Workspace:GetDescendants()) do
-                if obj:IsA("ProximityPrompt") then
-                    local part = obj.Parent
-                    if part and (part.Name:lower():find("weight") or part.Name:lower():find("barbell")) then
-                        if (part.Position - root.Position).Magnitude < 30 then
-                            fireproximityprompt(obj)
-                            task.wait(0.35)
+
+            for _, prompt in ipairs(Workspace:GetDescendants()) do
+                if prompt:IsA("ProximityPrompt") then
+                    local part = prompt.Parent
+                    if part and (part.Name:lower():find("barbell") or part.Name:lower():find("weight") or part.Name:lower():find("lift")) then
+                        if (part.Position - root.Position).Magnitude < 25 then
+                            fireproximityprompt(prompt, 0)
+                            task.wait(0.4)
                             break
                         end
                     end
                 end
             end
         end)
-    elseif connections.farm then
-        connections.farm:Disconnect()
-    end
+    elseif connections.farm then connections.farm:Disconnect() end
 end)
 
 CreateToggle("Auto Workout", false, function(state)
@@ -267,60 +257,35 @@ CreateToggle("Auto Workout", false, function(state)
     if state then
         connections.workout = RunService.Heartbeat:Connect(function()
             if not autoWorkout then return end
-            local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
-            local workout = remotes:FindFirstChild("Workout") or remotes:FindFirstChild("Train") or remotes:FindFirstChild("Lift")
-            if workout then
-                pcall(function() workout:FireServer(workoutMultiplier) end)
-            end
-            task.wait(0.7)
+            local rem = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
+            local event = rem:FindFirstChild("Workout") or rem:FindFirstChild("Train") or rem:FindFirstChild("LiftEvent")
+            if event then pcall(function() event:FireServer(workoutMultiplier) end) end
+            task.wait(0.6)
         end)
-    elseif connections.workout then
-        connections.workout:Disconnect()
-    end
+    elseif connections.workout then connections.workout:Disconnect() end
 end)
 
-CreateToggle("Auto Rebirth", false, function(state)
-    autoRebirth = state
-    if state then
-        spawn(function()
-            while autoRebirth do task.wait(7)
-                local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
-                local rebirth = remotes:FindFirstChild("Rebirth") or remotes:FindFirstChild("Reborn")
-                if rebirth then pcall(function() rebirth:FireServer() end) end
-            end
-        end)
-    end
-end)
-
-CreateToggle("Auto Sell", false, function(state)
-    autoSell = state
-end)
-
-CreateToggle("Auto Buy Upgrades", false, function(state)
-    autoBuyUpgrades = state
-end)
-
-CreateLabel("=== MOVEMENT & UTILITY ===")
+CreateLabel("=== MOVEMENT ===")
 
 CreateToggle("WalkSpeed", false, function(state)
     walkspeedEnabled = state
     if state then
-        connections.ws = RunService.RenderStepped:Connect(function()
-            local hum = getCharacter():FindFirstChild("Humanoid")
+        connections.speed = RunService.RenderStepped:Connect(function()
+            local hum = getChar():FindFirstChild("Humanoid")
             if hum then hum.WalkSpeed = targetWalkSpeed end
         end)
-    elseif connections.ws then connections.ws:Disconnect() end
+    elseif connections.speed then connections.speed:Disconnect() end
 end)
 
 CreateToggle("JumpPower", false, function(state)
     jumpPowerEnabled = state
     if state then
-        local hum = getCharacter():FindFirstChild("Humanoid")
+        local hum = getChar():FindFirstChild("Humanoid")
         if hum then hum.JumpPower = targetJumpPower end
     end
 end)
 
-CreateToggle("Anti AFK", true, function(state)
+CreateToggle("Anti-AFK", true, function(state)
     antiAFK = state
     if state then
         connections.afk = LocalPlayer.Idled:Connect(function()
@@ -332,20 +297,21 @@ CreateToggle("Anti AFK", true, function(state)
     elseif connections.afk then connections.afk:Disconnect() end
 end)
 
+CreateLabel("=== UTILITY ===")
+
 CreateButton(nil, "Teleport to Best Area", function()
-    local char = getCharacter()
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if root then root.CFrame = CFrame.new(300, 50, -400) end -- Change coordinates if needed
+    local root = getChar():FindFirstChild("HumanoidRootPart")
+    if root then root.CFrame = CFrame.new(400, 80, 300) end -- adjust if needed
 end)
 
-CreateButton(nil, "Claim All Codes", function()
-    print("Claiming codes... (customize with real codes)")
+CreateButton(nil, "Reset Character", function()
+    LocalPlayer.Character:BreakJoints()
 end)
 
--- Update Canvas Size
-scrolling.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 50)
+-- Canvas Size
+scrolling.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y + 100)
 listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scrolling.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 50)
+    scrolling.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y + 100)
 end)
 
-print("Void Strongman Simulator Loaded!")
+print("✅ Void Strongman UI Loaded Successfully!")
