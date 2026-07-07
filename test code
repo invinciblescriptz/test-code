@@ -236,6 +236,299 @@ end
 
 -- ==================== FEATURES ====================
 
+
+-- Auto Good Karma
+CreateToggle("Auto Good Karma", false, function(bool)
+    autoGoodKarma = bool
+    task.spawn(function()
+        while autoGoodKarma do
+            local char = LocalPlayer.Character
+            local rightHand = char and char:FindFirstChild("RightHand")
+            local leftHand = char and char:FindFirstChild("LeftHand")
+            if char and rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer then
+                        local evil = target:FindFirstChild("evilKarma")
+                        local good = target:FindFirstChild("goodKarma")
+                        if evil and good and evil.Value > good.Value then
+                            local root = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                            if root then
+                                firetouchinterest(rightHand, root, 1)
+                                firetouchinterest(leftHand, root, 1)
+                                firetouchinterest(rightHand, root, 0)
+                                firetouchinterest(leftHand, root, 0)
+                            end
+                        end
+                    end
+                end
+            end
+            task.wait(0.01)
+        end
+    end)
+end)
+
+-- Auto Bad Karma
+CreateToggle("Auto Bad Karma", false, function(bool)
+    autoBadKarma = bool
+    task.spawn(function()
+        while autoBadKarma do
+            local char = LocalPlayer.Character
+            local rightHand = char and char:FindFirstChild("RightHand")
+            local leftHand = char and char:FindFirstChild("LeftHand")
+            if char and rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer then
+                        local evil = target:FindFirstChild("evilKarma")
+                        local good = target:FindFirstChild("goodKarma")
+                        if evil and good and good.Value > evil.Value then
+                            local root = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                            if root then
+                                firetouchinterest(rightHand, root, 1)
+                                firetouchinterest(leftHand, root, 1)
+                                firetouchinterest(rightHand, root, 0)
+                                firetouchinterest(leftHand, root, 0)
+                            end
+                        end
+                    end
+                end
+            end
+            task.wait(0.01)
+        end
+    end)
+end)
+
+-- Auto Kill (All)
+CreateToggle("Auto Kill", false, function(bool)
+    autoKill = bool
+    task.spawn(function()
+        while autoKill do
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local rightHand = char:FindFirstChild("RightHand")
+            local leftHand = char:FindFirstChild("LeftHand")
+            
+            local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+            if punch and not char:FindFirstChild("Punch") then
+                punch.Parent = char
+            end
+
+            if rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer and not playerWhitelist[target.Name] then
+                        local tChar = target.Character
+                        local root = tChar and tChar:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            pcall(function()
+                                firetouchinterest(rightHand, root, 1)
+                                firetouchinterest(leftHand, root, 1)
+                                firetouchinterest(rightHand, root, 0)
+                                firetouchinterest(leftHand, root, 0)
+                            end)
+                        end
+                    end
+                end
+            end
+            task.wait(0.05)
+        end
+    end)
+end)
+
+-- Auto Whitelist Friends
+CreateButton(nil, "Auto Whitelist Friends", function()
+    friendWhitelistActive = not friendWhitelistActive
+    if friendWhitelistActive then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and LocalPlayer:IsFriendsWith(player.UserId) then
+                playerWhitelist[player.Name] = true
+            end
+        end
+    else
+        for name in pairs(playerWhitelist) do
+            local plr = Players:FindFirstChild(name)
+            if plr and LocalPlayer:IsFriendsWith(plr.UserId) then
+                playerWhitelist[name] = nil
+            end
+        end
+    end
+end)
+
+CreateButton(nil, "Equip Wild Wizard", function()
+    print("Equipping Wild Wizard")
+end)
+
+CreateButton(nil, "Equip Mighty Monster", function()
+    print("Equipping Mighty Monster")
+end)
+
+CreateLabel("Misc")
+
+-- Fast Punch
+CreateToggle("Fast Punch", false, function(state)
+    _G.autoPunchActive = state
+    if state then
+        task.spawn(function()
+            while _G.autoPunchActive do
+                local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+                if punch then
+                    punch.Parent = LocalPlayer.Character
+                    if punch:FindFirstChild("attackTime") then
+                        punch.attackTime.Value = 0
+                    end
+                end
+                task.wait()
+            end
+        end)
+        task.spawn(function()
+            while _G.autoPunchActive do
+                local punch = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Punch")
+                if punch then
+                    punch:Activate()
+                end
+                task.wait()
+            end
+        end)
+    end
+end)
+
+-- Lock Position
+CreateToggle("Lock Position", false, function(Value)
+    if Value then
+        local currentPos = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.CFrame
+        if currentPos then
+            getgenv().posLock = RunService.Heartbeat:Connect(function()
+                local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if root then
+                    root.CFrame = currentPos
+                end
+            end)
+        end
+    else
+        if getgenv().posLock then
+            getgenv().posLock:Disconnect()
+            getgenv().posLock = nil
+        end
+    end
+end)
+
+-- NaN
+CreateToggle("NaN", false, function(state)
+    local player = game.Players.LocalPlayer
+    local targetCFrame = CFrame.new(
+        -38.9849625, 0.111833394, 23.6454487,
+        0.228692636, 5.38890532e-08, 0.973498702,
+        9.52623491e-09, 1, -5.75939509e-08,
+        -0.973498702, 2.24450893e-08, 0.228692636
+    )
+
+    if _G.NaNLockConnection then
+        _G.NaNLockConnection:Disconnect()
+        _G.NaNLockConnection = nil
+    end
+
+    if state then
+        local args = {"changeSize", 0/0}
+        game:GetService("ReplicatedStorage"):WaitForChild("rEvents"):WaitForChild("changeSpeedSizeRemote"):InvokeServer(unpack(args))
+
+        local function applyLock(character)
+            if not character then return end
+            local root = character:WaitForChild("HumanoidRootPart", 5)
+            if not root then return end
+
+            root.CFrame = targetCFrame
+            root.Anchored = true
+            root.Velocity = Vector3.new(0, 0, 0)
+            root.RotVelocity = Vector3.new(0, 0, 0)
+
+            if _G.NaNLockConnection then
+                _G.NaNLockConnection:Disconnect()
+            end
+
+            _G.NaNLockConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if root and root.Parent then
+                    root.CFrame = targetCFrame
+                    root.Velocity = Vector3.new(0, 0, 0)
+                    root.RotVelocity = Vector3.new(0, 0, 0)
+                end
+            end)
+        end
+
+        local character = player.Character or player.CharacterAdded:Wait()
+        applyLock(character)
+
+        if not _G.NaNCharacterAddedConn then
+            _G.NaNCharacterAddedConn = player.CharacterAdded:Connect(function(newChar)
+                task.wait(0.1)
+                applyLock(newChar)
+            end)
+        end
+
+    else
+        local character = player.Character
+        if character then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.Anchored = false
+                root.Velocity = Vector3.new(0, 5, 0)
+            end
+        end
+
+        if _G.NaNLockConnection then
+            _G.NaNLockConnection:Disconnect()
+            _G.NaNLockConnection = nil
+        end
+
+        if _G.NaNCharacterAddedConn then
+            _G.NaNCharacterAddedConn:Disconnect()
+            _G.NaNCharacterAddedConn = nil
+        end
+    end
+end)
+
+-- Prevent Knockback
+CreateToggle("Prevent Knockback", false, function(state)
+    getgenv().AntiKnockback = state
+    
+    if state then
+        print("✅ Anti Knockback ENABLED")
+        spawn(function()
+            while getgenv().AntiKnockback do
+                pcall(function()
+                    local character = game.Players.LocalPlayer.Character
+                    if not character then return end
+                    
+                    local root = character:FindFirstChild("HumanoidRootPart")
+                    if root then
+                        for _, v in pairs(root:GetChildren()) do
+                            if v:IsA("BodyVelocity") or v:IsA("BodyThrust") or v:IsA("BodyForce") or 
+                               v:IsA("LinearVelocity") or v:IsA("VectorForce") then
+                                v:Destroy()
+                            end
+                        end
+                    end
+                end)
+                task.wait(0.03)
+            end
+        end)
+    else
+        print("❌ Anti Knockback DISABLED")
+    end
+end)
+
+-- Hide Karma Frames
+CreateToggle("Hide Karma Frames", false, function(bool)
+    local rSto = game:GetService("ReplicatedStorage")
+    for _, obj in pairs(rSto:GetChildren()) do
+        if obj.Name:match("Frame$") then
+            obj.Visible = not bool
+        end
+    end
+end)
+
+-- Rejoin
+CreateButton(nil, "Rejoin Server", function()
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+end)
+
+
 CreateLabel("OP Kill Players")
 
 -- Target Dropdown (simple version using buttons)
@@ -310,7 +603,3 @@ CreateToggle("Enable View Player", false, function(bool)
         end
     end)
 end)
-
--- How to add targets (temporary simple way)
-print("To add targets, edit the 'targetPlayerNames' table at the top of the script.")
--- Example: targetPlayerNames = {"PlayerName1", "PlayerName2"} 
