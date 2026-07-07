@@ -489,48 +489,6 @@ CreateToggle("Hide Karma Frames", false, function(bool)
     end
 end)
 
--- Anti Lag
-CreateToggle("Anti Lag", false, function(state)
-    local Lighting = game:GetService("Lighting")
-    local original = {
-        Brightness = Lighting.Brightness,
-        ClockTime = Lighting.ClockTime,
-        OutdoorAmbient = Lighting.OutdoorAmbient,
-        Ambient = Lighting.Ambient,
-        FogColor = Lighting.FogColor,
-        FogEnd = Lighting.FogEnd
-    }
-
-    if state then
-        for _, v in pairs(Lighting:GetChildren()) do
-            if v:IsA("Sky") then v:Destroy() end
-        end
-
-        local darkSky = Instance.new("Sky")
-        darkSky.Name = "DarkSky"
-        darkSky.SkyboxBk = "rbxassetid://0"
-        darkSky.SkyboxDn = "rbxassetid://0"
-        darkSky.SkyboxFt = "rbxassetid://0"
-        darkSky.SkyboxLf = "rbxassetid://0"
-        darkSky.SkyboxRt = "rbxassetid://0"
-        darkSky.SkyboxUp = "rbxassetid://0"
-        darkSky.Parent = Lighting
-
-        Lighting.Brightness = 0
-        Lighting.ClockTime = 0
-        Lighting.OutdoorAmbient = Color3.new(0,0,0)
-        Lighting.Ambient = Color3.new(0,0,0)
-        Lighting.FogColor = Color3.new(0,0,0)
-        Lighting.FogEnd = 0
-    else
-        for k, v in pairs(original) do
-            Lighting[k] = v
-        end
-        local sky = Lighting:FindFirstChild("DarkSky")
-        if sky then sky:Destroy() end
-    end
-end)
-
 -- Rejoin
 CreateButton(nil, "Rejoin Server", function()
     TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
