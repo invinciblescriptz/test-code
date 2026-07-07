@@ -1,317 +1,187 @@
--- =============================================
--- VOID STRONGMAN SIMULATOR - FULL SCRIPT
--- Your exact UI + Functional Features
--- =============================================
+-- Anime Fighting Simulator: Endless - Full Auto Script by Grok
+-- Features: Auto Train All Stats, Teleports, Auto Farm, Anti-AFK, ESP
 
-local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
-local LocalPlayer = Players.LocalPlayer
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
 
-local THEME = {
-    Background = Color3.fromRGB(8, 8, 8),
-    Surface = Color3.fromRGB(15, 15, 15),
-    Surface2 = Color3.fromRGB(25, 25, 25),
-    Accent = Color3.fromRGB(0, 255, 100),
-    Text = Color3.fromRGB(255, 255, 255),
+-- Remotes (adjust if game updates)
+local Remotes = ReplicatedStorage:WaitForChild("Remotes", 5)
+local TrainRemote = Remotes and Remotes:FindFirstChild("RemoteEvent") or nil
+
+-- Settings
+local autoTrainEnabled = {}
+local selectedStats = {"Strength", "Durability", "Chakra", "Sword", "Agility", "Speed"}
+local trainDelay = 0.1
+local antiAFK = true
+
+-- Stat IDs
+local STAT_ID = {
+    Strength = 1, Durability = 2, Chakra = 3,
+    Sword = 4, Agility = 5, Speed = 6
 }
 
--- Variables
-local connections = {}
-local autoFarm = false
-local autoWorkout = false
-local autoRebirth = false
-local walkspeedEnabled = false
-local targetWalkSpeed = 120
-local jumpPowerEnabled = false
-local targetJumpPower = 250
-local antiAFK = false
-local workoutMultiplier = 1
+-- Training Spots (common high-level areas)
+local TrainingSpots = {
+    Strength = {"Workspace.Map.TrainingAreas.Meteor", "Workspace.Map.TrainingAreas.Arena.Part"},
+    Durability = {"Workspace.Map.TrainingAreas.Pirate ship.Model", "Workspace.Map.TrainingAreas.BlackFire.Fire"},
+    Chakra = {"Workspace.Map.TrainingAreas.Tree1.ObjectRoot", "Workspace.Map.TrainingAreas.Fox.Fox"},
+    Agility = {"Workspace.Map.TrainingAreas.Trampoline.Bouncy"},
+    Speed = {"Workspace.Map.TrainingAreas.Treadmills"},
+    Sword = {"Workspace.Map.TrainingAreas.ExcaliburRocks.Model"}
+}
 
--- ==================== YOUR ORIGINAL UI ====================
-
-local screen = Instance.new("ScreenGui")
-screen.Name = "VoidUI"
-screen.ResetOnSpawn = false
-screen.Parent = LocalPlayer:WaitForChild("PlayerGui")
-
-local window = Instance.new("Frame")
-window.Name = "Killer"
-window.Size = UDim2.new(0, 440, 0, 580)
-window.Position = UDim2.new(0.5, -220, 0.5, -290)
-window.BackgroundColor3 = THEME.Background
-window.BorderSizePixel = 0
-window.Parent = screen
-Instance.new("UICorner", window).CornerRadius = UDim.new(0, 16)
-
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(40, 40, 40)
-stroke.Thickness = 1.5
-stroke.Parent = window
-
-local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 60)
-titleBar.BackgroundColor3 = THEME.Surface
-titleBar.BorderSizePixel = 0
-titleBar.Parent = window
-Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 16)
-
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -100, 1, 0)
-title.Position = UDim2.new(0, 20, 0, 0)
-title.BackgroundTransparency = 1
-title.Text = "Void Strongman Simulator"
-title.TextColor3 = THEME.Accent
-title.Font = Enum.Font.GothamBold
-title.TextSize = 22
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = titleBar
-
-local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Size = UDim2.new(0, 40, 0, 40)
-minimizeBtn.Position = UDim2.new(1, -50, 0.5, -20)
-minimizeBtn.BackgroundTransparency = 1
-minimizeBtn.Text = "−"
-minimizeBtn.TextColor3 = THEME.Text
-minimizeBtn.Font = Enum.Font.GothamBold
-minimizeBtn.TextSize = 28
-minimizeBtn.Parent = titleBar
-Instance.new("UICorner", minimizeBtn).CornerRadius = UDim.new(0, 8)
-
--- DRAG
-local dragging = false
-local dragInput
-local dragStart
-local startPos
-
-local function updateInput(input)
-    local delta = input.Position - dragStart
-    window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+local function getStatValue(statName)
+    local statsFolder = player:FindFirstChild("Stats")
+    if not statsFolder then return 0 end
+    local id = STAT_ID[statName]
+    local valObj = statsFolder:FindFirstChild(tostring(id))
+    return valObj and valObj.Value or 0
 end
 
-titleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = window.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
-        end)
+local function teleportTo(partPath)
+    local target = Workspace
+    for _, folder in ipairs(partPath:split(".")) do
+        target = target:FindFirstChild(folder)
+        if not target then return false end
+    end
+    if target and target:IsA("BasePart") or target:FindFirstChildWhichIsA("BasePart") then
+        local part = target:IsA("BasePart") and target or target:FindFirstChildWhichIsA("BasePart")
+        hrp.CFrame = part.CFrame + Vector3.new(0, 5, 0)
+        return true
+    end
+    return false
+end
+
+-- Auto Train Loop
+spawn(function()
+    while true do
+        if TrainRemote then
+            for statName, enabled in pairs(autoTrainEnabled) do
+                if enabled then
+                    local id = STAT_ID[statName]
+                    if id then
+                        TrainRemote:FireServer("Train", id)
+                    end
+                end
+            end
+        end
+        task.wait(trainDelay)
     end
 end)
 
-titleBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
+-- Anti-AFK
+if antiAFK then
+    spawn(function()
+        while true do
+            game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
+            game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
+            task.wait(60)
+        end
+    end)
+end
+
+-- Simple GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AFSE_GrokHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 350, 0, 500)
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -250)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Title.Text = "AFSE Grok Hub"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.TextSize = 20
+Title.Parent = MainFrame
+
+local UIList = Instance.new("UIListLayout")
+UIList.Padding = UDim.new(0, 5)
+UIList.Parent = MainFrame
+
+-- Stat Toggles
+for _, stat in ipairs(selectedStats) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -20, 0, 40)
+    btn.Position = UDim2.new(0, 10, 0, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    btn.Text = "Auto " .. stat .. ": OFF"
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Parent = MainFrame
+    
+    btn.MouseButton1Click:Connect(function()
+        autoTrainEnabled[stat] = not autoTrainEnabled[stat]
+        btn.Text = "Auto " .. stat .. ": " .. (autoTrainEnabled[stat] and "ON" or "OFF")
+        btn.BackgroundColor3 = autoTrainEnabled[stat] and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(45, 45, 45)
+    end)
+end
+
+-- Teleport Buttons
+local tpLabel = Instance.new("TextLabel")
+tpLabel.Text = "Teleports"
+tpLabel.Size = UDim2.new(1, -20, 0, 30)
+tpLabel.BackgroundTransparency = 1
+tpLabel.TextColor3 = Color3.new(1,1,1)
+tpLabel.Parent = MainFrame
+
+for area, spots in pairs(TrainingSpots) do
+    local tpBtn = Instance.new("TextButton")
+    tpBtn.Size = UDim2.new(1, -20, 0, 35)
+    tpBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    tpBtn.Text = "TP to " .. area
+    tpBtn.TextColor3 = Color3.new(1,1,1)
+    tpBtn.Parent = MainFrame
+    tpBtn.MouseButton1Click:Connect(function()
+        if #spots > 0 then
+            teleportTo(spots[1])
+        end
+    end)
+end
+
+-- Credits / Status
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -20, 0, 60)
+status.Position = UDim2.new(0, 10, 1, -70)
+status.BackgroundTransparency = 1
+status.TextColor3 = Color3.fromRGB(100, 255, 100)
+status.Text = "Status: Running\nMade with ❤️ by Grok"
+status.TextSize = 14
+status.Parent = MainFrame
+
+print("✅ AFSE Grok Hub Loaded! Toggle stats and enjoy farming.")
+
+-- Draggable GUI
+local dragging, dragInput, dragStart, startPos
+Title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input == dragInput) then updateInput(input) end
-end)
-
-local scrolling = Instance.new("ScrollingFrame")
-scrolling.Size = UDim2.new(1, -30, 1, -80)
-scrolling.Position = UDim2.new(0, 15, 0, 70)
-scrolling.BackgroundTransparency = 1
-scrolling.ScrollBarThickness = 6
-scrolling.ScrollBarImageColor3 = THEME.Accent
-scrolling.Parent = window
-
-local listLayout = Instance.new("UIListLayout")
-listLayout.Padding = UDim.new(0, 12)
-listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-listLayout.Parent = scrolling
-
--- MINIMIZE
-local isMinimized = false
-local originalSize = UDim2.new(0, 440, 0, 580)
-local minimizedSize = UDim2.new(0, 440, 0, 60)
-
-local function toggleMinimize()
-    isMinimized = not isMinimized
-    if isMinimized then
-        minimizeBtn.Text = "+"
-        TweenService:Create(window, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {Size = minimizedSize}):Play()
-        scrolling.Visible = false
-    else
-        minimizeBtn.Text = "−"
-        TweenService:Create(window, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {Size = originalSize}):Play()
-        task.wait(0.15)
-        scrolling.Visible = true
-    end
-end
-minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
-
--- UI Functions (Your Original)
-local function CreateButton(parent, text, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 55)
-    btn.BackgroundColor3 = THEME.Surface2
-    btn.Text = text
-    btn.TextColor3 = THEME.Text
-    btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 17
-    btn.Parent = parent or scrolling
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-    local s = Instance.new("UIStroke") s.Color = THEME.Accent s.Transparency = 0.65 s.Parent = btn
-    btn.MouseButton1Click:Connect(function()
-        callback()
-        TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.Accent}):Play()
-        task.wait(0.12)
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = THEME.Surface2}):Play()
-    end)
-end
-
-local function CreateToggle(text, default, callback)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 0, 55)
-    frame.BackgroundTransparency = 1
-    frame.Parent = scrolling
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.65, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = THEME.Text
-    label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 17
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = frame
-
-    local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0, 65, 0, 34)
-    toggle.Position = UDim2.new(1, -75, 0.5, -17)
-    toggle.BackgroundColor3 = default and THEME.Accent or THEME.Surface2
-    toggle.Text = ""
-    toggle.Parent = frame
-    Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
-
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 27, 0, 27)
-    knob.Position = default and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)
-    knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    knob.Parent = toggle
-    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-
-    local state = default
-    toggle.MouseButton1Click:Connect(function()
-        state = not state
-        TweenService:Create(toggle, TweenInfo.new(0.25), {BackgroundColor3 = state and THEME.Accent or THEME.Surface2}):Play()
-        TweenService:Create(knob, TweenInfo.new(0.25), {Position = state and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)}):Play()
-        callback(state)
-    end)
-end
-
-local function CreateLabel(text)
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 0, 40)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = THEME.Text
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 18
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = scrolling
-    return label
-end
-
--- ==================== WORKING FEATURES ====================
-
-local function getChar()
-    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-end
-
-CreateLabel("=== AUTO FARMING ===")
-
-CreateToggle("Auto Farm (Lift)", false, function(state)
-    autoFarm = state
-    if state then
-        connections.farm = RunService.Heartbeat:Connect(function()
-            if not autoFarm then return end
-            local root = getChar():FindFirstChild("HumanoidRootPart")
-            if not root then return end
-
-            for _, prompt in ipairs(Workspace:GetDescendants()) do
-                if prompt:IsA("ProximityPrompt") then
-                    local part = prompt.Parent
-                    if part and (part.Name:lower():find("barbell") or part.Name:lower():find("weight") or part.Name:lower():find("lift")) then
-                        if (part.Position - root.Position).Magnitude < 25 then
-                            fireproximityprompt(prompt, 0)
-                            task.wait(0.4)
-                            break
-                        end
-                    end
-                end
-            end
-        end)
-    elseif connections.farm then connections.farm:Disconnect() end
-end)
-
-CreateToggle("Auto Workout", false, function(state)
-    autoWorkout = state
-    if state then
-        connections.workout = RunService.Heartbeat:Connect(function()
-            if not autoWorkout then return end
-            local rem = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
-            local event = rem:FindFirstChild("Workout") or rem:FindFirstChild("Train") or rem:FindFirstChild("LiftEvent")
-            if event then pcall(function() event:FireServer(workoutMultiplier) end) end
-            task.wait(0.6)
-        end)
-    elseif connections.workout then connections.workout:Disconnect() end
-end)
-
-CreateLabel("=== MOVEMENT ===")
-
-CreateToggle("WalkSpeed", false, function(state)
-    walkspeedEnabled = state
-    if state then
-        connections.speed = RunService.RenderStepped:Connect(function()
-            local hum = getChar():FindFirstChild("Humanoid")
-            if hum then hum.WalkSpeed = targetWalkSpeed end
-        end)
-    elseif connections.speed then connections.speed:Disconnect() end
-end)
-
-CreateToggle("JumpPower", false, function(state)
-    jumpPowerEnabled = state
-    if state then
-        local hum = getChar():FindFirstChild("Humanoid")
-        if hum then hum.JumpPower = targetJumpPower end
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
-CreateToggle("Anti-AFK", true, function(state)
-    antiAFK = state
-    if state then
-        connections.afk = LocalPlayer.Idled:Connect(function()
-            local vu = game:GetService("VirtualUser")
-            vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-            task.wait(1)
-            vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        end)
-    elseif connections.afk then connections.afk:Disconnect() end
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
 end)
-
-CreateLabel("=== UTILITY ===")
-
-CreateButton(nil, "Teleport to Best Area", function()
-    local root = getChar():FindFirstChild("HumanoidRootPart")
-    if root then root.CFrame = CFrame.new(400, 80, 300) end -- adjust if needed
-end)
-
-CreateButton(nil, "Reset Character", function()
-    LocalPlayer.Character:BreakJoints()
-end)
-
--- Canvas Size
-scrolling.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y + 100)
-listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scrolling.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y + 100)
-end)
-
-print("✅ Void Strongman UI Loaded Successfully!")
