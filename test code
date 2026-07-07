@@ -1,22 +1,21 @@
 -- =============================================
--- COOLUI v3 - Glassmorphism Style
+-- COOLUI v5 - Clean Minimal Dark
 -- =============================================
 
 local CoolUI = {}
 CoolUI.__index = CoolUI
 
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 
 local THEME = {
-    Main = Color3.fromRGB(20, 20, 28),
-    Glass = Color3.fromRGB(30, 30, 45),
-    Accent = Color3.fromRGB(80, 180, 255),
-    Text = Color3.fromRGB(235, 235, 245),
-    TextDim = Color3.fromRGB(170, 170, 190),
+    Background = Color3.fromRGB(10, 10, 15),
+    Surface = Color3.fromRGB(25, 25, 35),
+    Accent = Color3.fromRGB(100, 160, 255),
+    TextPrimary = Color3.fromRGB(240, 240, 245),
+    TextSecondary = Color3.fromRGB(160, 165, 180),
 }
 
-local TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local TWEEN_INFO = TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
 function CoolUI:Init()
     local screenGui = Instance.new("ScreenGui")
@@ -28,92 +27,74 @@ end
 
 function CoolUI:CreateWindow(title)
     local window = Instance.new("Frame")
-    window.Size = UDim2.new(0, 440, 0, 400)
-    window.Position = UDim2.new(0.5, -220, 0.5, -200)
-    window.BackgroundColor3 = THEME.Glass
-    window.BackgroundTransparency = 0.25
+    window.Size = UDim2.new(0, 420, 0, 380)
+    window.Position = UDim2.new(0.5, -210, 0.5, -190)
+    window.BackgroundColor3 = THEME.Background
     window.BorderSizePixel = 0
     window.Active = true
     window.Draggable = true
     window.Parent = self.ScreenGui
 
-    -- Glass effect
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 16)
-    corner.Parent = window
+    Instance.new("UICorner", window).CornerRadius = UDim.new(0, 12)
 
-    local stroke = Instance.new("UIStroke")
+    -- Subtle border
+    local stroke = Instance.new("UIStroke", window)
     stroke.Color = THEME.Accent
-    stroke.Thickness = 1.5
-    stroke.Transparency = 0.6
-    stroke.Parent = window
-
-    -- Gradient overlay
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(180,180,255))
-    }
-    gradient.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.85),
-        NumberSequenceKeypoint.new(1, 0.92)
-    }
-    gradient.Parent = window
+    stroke.Thickness = 1
+    stroke.Transparency = 0.75
 
     -- Title Bar
     local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 50)
-    titleBar.BackgroundColor3 = THEME.Main
-    titleBar.BackgroundTransparency = 0.4
+    titleBar.Size = UDim2.new(1, 0, 0, 44)
+    titleBar.BackgroundColor3 = THEME.Surface
     titleBar.BorderSizePixel = 0
     titleBar.Parent = window
 
-    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 16)
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 12)
 
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -90, 1, 0)
-    titleLabel.Position = UDim2.new(0, 20, 0, 0)
+    titleLabel.Size = UDim2.new(1, -80, 1, 0)
+    titleLabel.Position = UDim2.new(0, 18, 0, 0)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title or "CoolUI"
-    titleLabel.TextColor3 = THEME.Text
-    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.Text = title or "Interface"
+    titleLabel.TextColor3 = THEME.TextPrimary
+    titleLabel.Font = Enum.Font.GothamMedium
     titleLabel.TextScaled = true
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
 
     -- Close Button
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 36, 0, 36)
-    closeBtn.Position = UDim2.new(1, -46, 0.5, -18)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(230, 60, 80)
-    closeBtn.Text = "✕"
-    closeBtn.TextColor3 = Color3.new(1,1,1)
+    closeBtn.Size = UDim2.new(0, 32, 0, 32)
+    closeBtn.Position = UDim2.new(1, -38, 0.5, -16)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Text = "×"
+    closeBtn.TextColor3 = THEME.TextSecondary
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.TextScaled = true
     closeBtn.Parent = titleBar
-    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1,0)
 
     closeBtn.MouseButton1Click:Connect(function()
-        window:TweenSize(UDim2.new(0,0,0,0), "Out", "Quad", 0.35, true)
-        game:GetService("Debris"):AddItem(window, 0.4)
+        window:TweenSize(UDim2.new(0,0,0,0), "Out", "Quad", 0.3, true)
+        game:GetService("Debris"):AddItem(window, 0.35)
     end)
 
     -- Content
     local content = Instance.new("ScrollingFrame")
     content.Name = "Content"
-    content.Size = UDim2.new(1, -24, 1, -70)
-    content.Position = UDim2.new(0, 12, 0, 60)
+    content.Size = UDim2.new(1, -24, 1, -60)
+    content.Position = UDim2.new(0, 12, 0, 52)
     content.BackgroundTransparency = 1
-    content.ScrollBarThickness = 5
+    content.ScrollBarThickness = 4
     content.ScrollBarImageColor3 = THEME.Accent
     content.CanvasSize = UDim2.new(0,0,0,0)
     content.Parent = window
 
     local list = Instance.new("UIListLayout", content)
-    list.Padding = UDim.new(0, 14)
+    list.Padding = UDim.new(0, 10)
     list.SortOrder = Enum.SortOrder.LayoutOrder
 
-    Instance.new("UIPadding", content).PaddingRight = UDim.new(0, 10)
+    Instance.new("UIPadding", content).PaddingRight = UDim.new(0, 8)
 
     window:SetAttribute("Content", content)
     return window
@@ -121,44 +102,41 @@ end
 
 function CoolUI:CreateButton(parent, text, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -10, 0, 54)
-    btn.BackgroundColor3 = THEME.Accent
-    btn.BackgroundTransparency = 0.1
+    btn.Size = UDim2.new(1, -10, 0, 48)
+    btn.BackgroundColor3 = THEME.Surface
     btn.Text = text or "Button"
-    btn.TextColor3 = Color3.new(0,0,0)
-    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = THEME.TextPrimary
+    btn.Font = Enum.Font.GothamSemibold
     btn.TextScaled = true
     btn.Parent = parent
 
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-
-    local btnStroke = Instance.new("UIStroke", btn)
-    btnStroke.Color = Color3.new(1,1,1)
-    btnStroke.Transparency = 0.7
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TWEEN_INFO, {BackgroundTransparency = 0, Size = UDim2.new(1, -4, 0, 56)}):Play()
+        TweenService:Create(btn, TWEEN_INFO, {BackgroundColor3 = THEME.Accent, TextColor3 = Color3.new(0,0,0)}):Play()
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TWEEN_INFO, {BackgroundTransparency = 0.1, Size = UDim2.new(1, -10, 0, 54)}):Play()
+        TweenService:Create(btn, TWEEN_INFO, {BackgroundColor3 = THEME.Surface, TextColor3 = THEME.TextPrimary}):Play()
     end)
 
     btn.MouseButton1Click:Connect(function()
         if callback then callback() end
-        TweenService:Create(btn, TweenInfo.new(0.15), {Size = UDim2.new(1, -20, 0, 50)}):Play()
-        wait(0.15)
-        TweenService:Create(btn, TweenInfo.new(0.2), {Size = UDim2.new(1, -10, 0, 54)}):Play()
+        local goal = {Size = UDim2.new(1, -20, 0, 44)}
+        TweenService:Create(btn, TweenInfo.new(0.1), goal):Play()
+        task.delay(0.1, function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {Size = UDim2.new(1, -10, 0, 48)}):Play()
+        end)
     end)
 
     return btn
 end
 
--- Example
+-- Load Example
 CoolUI:Init()
-local win = CoolUI:CreateWindow("Premium UI")
+local mainWindow = CoolUI:CreateWindow("Minimal Interface")
 
-CoolUI:CreateButton(win.Content, "Primary Action", function() print("Primary clicked") end)
-CoolUI:CreateButton(win.Content, "Secondary Action", function() print("Secondary clicked") end)
-CoolUI:CreateButton(win.Content, "Danger Button", function() warn("Danger!") end)
+Minimal Interface:CreateButton(mainWindow.Content, "Continue", function() print("Continued") end)
+Minimal Interface:CreateButton(mainWindow.Content, "Options", function() print("Options opened") end)
+Minimal Interface:CreateButton(mainWindow.Content, "Quit", function() print("Quit pressed") end)
 
-print("✅ CoolUI Glassmorphism Loaded!")
+print("✅ Clean Minimal UI Loaded")
