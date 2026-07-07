@@ -1,16 +1,1 @@
-https://raw.githubusercontent.com/invinciblescriptz/Kalon-private/refs/heads/main/Kalon%20Private%20Farming
 
-
-local FluentUI = require(game.ReplicatedStorage.FluentUI)
-
-local screen = Instance.new("https://raw.githubusercontent.com/invinciblescriptz/Kalon-private/refs/heads/main/Kalon%20Private%20Farming", game.Players.LocalPlayer.PlayerGui)
-local main = Instance.new("Frame", screen)
-main.Size = UDim2.new(0.6, 0, 0.7, 0)
-main.Position = UDim2.new(0.2, 0, 0.15, 0)
-main.BackgroundColor3 = FluentUI.Colors.Background
-
-FluentUI:CreateButton(main, "Press Me", function()
-    FluentUI:Notify("Hello!", "This is a Fluent UI notification", 4)
-end)
-
-FluentUI:CreateCard(main, "Welcome", "Fluent UI library for Roblox.")
