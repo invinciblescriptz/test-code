@@ -1,1 +1,316 @@
- 
+local Players = game:GetService("Players")
+local whitelist = {
+    ["Hebdjxhc"] = true,
+    ["YumixKingZyukxDragon"] = true,
+    ["alexglover020"] = true,
+}
+
+-- Whitelist kick
+Players.PlayerAdded:Connect(function(player)
+    if not whitelist[player.Name] then
+        player:Kick("You are not whitelisted.")
+    end
+end)
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local THEME = {
+    Background = Color3.fromRGB(8, 8, 8),
+    Surface = Color3.fromRGB(15, 15, 15),
+    Surface2 = Color3.fromRGB(25, 25, 25),
+    Accent = Color3.fromRGB(255, 255, 255),
+    Text = Color3.fromRGB(255, 255, 255),
+}
+
+-- Variables
+local targetPlayerNames = {}
+local spying = false
+local targetPlayerName = nil
+local kill = false
+
+-- Window states
+local isMinimized = false
+local originalSize = UDim2.new(0, 440, 0, 580)
+local minimizedSize = UDim2.new(0, 440, 0, 60)
+
+-- Create ScreenGui
+local screen = Instance.new("ScreenGui")
+screen.Name = "VoidUI"
+screen.ResetOnSpawn = false
+screen.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create Window
+local window = Instance.new("Frame")
+window.Name = "Killer"
+window.Size = originalSize
+window.Position = UDim2.new(0.5, -220, 0.5, -290)
+window.BackgroundColor3 = THEME.Background
+window.BorderSizePixel = 0
+window.Parent = screen
+
+Instance.new("UICorner", window).CornerRadius = UDim.new(0, 16)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(40, 40, 40)
+stroke.Thickness = 1.5
+stroke.Parent = window
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 60)
+titleBar.BackgroundColor3 = THEME.Surface
+titleBar.BorderSizePixel = 0
+titleBar.Parent = window
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 16)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -100, 1, 0)
+title.Position = UDim2.new(0, 20, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Kill Script"
+title.TextColor3 = THEME.Accent
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = titleBar
+
+-- Minimize Button
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 40, 0, 40)
+minimizeBtn.Position = UDim2.new(1, -50, 0.5, -20)
+minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.Text = "−"
+minimizeBtn.TextColor3 = THEME.Text
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextSize = 28
+minimizeBtn.Parent = titleBar
+
+Instance.new("UICorner", minimizeBtn).CornerRadius = UDim.new(0, 8)
+
+-- Drag Functionality
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = window.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input == dragInput) then
+        updateInput(input)
+    end
+end)
+
+-- Scrolling Container
+local scrolling = Instance.new("ScrollingFrame")
+scrolling.Size = UDim2.new(1, -30, 1, -80)
+scrolling.Position = UDim2.new(0, 15, 0, 70)
+scrolling.BackgroundTransparency = 1
+scrolling.ScrollBarThickness = 6
+scrolling.ScrollBarImageColor3 = THEME.Accent
+scrolling.Parent = window
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 12)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = scrolling
+
+-- Minimize Function
+local function toggleMinimize()
+    isMinimized = not isMinimized
+    if isMinimized then
+        minimizeBtn.Text = "+"
+        TweenService:Create(window, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {Size = minimizedSize}):Play()
+        scrolling.Visible = false
+    else
+        minimizeBtn.Text = "−"
+        TweenService:Create(window, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {Size = originalSize}):Play()
+        task.wait(0.15)
+        scrolling.Visible = true
+    end
+end
+minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
+
+-- UI Helper Functions
+local function CreateButton(parent, text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 55)
+    btn.BackgroundColor3 = THEME.Surface2
+    btn.Text = text
+    btn.TextColor3 = THEME.Text
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 17
+    btn.Parent = parent or scrolling
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+
+    local s = Instance.new("UIStroke")
+    s.Color = THEME.Accent
+    s.Transparency = 0.65
+    s.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        callback()
+        TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.Accent}):Play()
+        task.wait(0.12)
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = THEME.Surface2}):Play()
+    end)
+end
+
+local function CreateToggle(text, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 55)
+    frame.BackgroundTransparency = 1
+    frame.Parent = scrolling
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.65, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = THEME.Text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 17
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 65, 0, 34)
+    toggle.Position = UDim2.new(1, -75, 0.5, -17)
+    toggle.BackgroundColor3 = default and THEME.Accent or THEME.Surface2
+    toggle.Text = ""
+    toggle.Parent = frame
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
+
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 27, 0, 27)
+    knob.Position = default and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)
+    knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    knob.Parent = toggle
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    local state = default
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        TweenService:Create(toggle, TweenInfo.new(0.25), {BackgroundColor3 = state and THEME.Accent or THEME.Surface2}):Play()
+        TweenService:Create(knob, TweenInfo.new(0.25), {Position = state and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)}):Play()
+        callback(state)
+    end)
+end
+
+local function CreateLabel(text)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 40)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = THEME.Text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 18
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = scrolling
+    return label
+end
+
+-- ==================== FEATURES ====================
+
+CreateLabel("OP Kill Players")
+
+-- Target Dropdown (simple version using buttons)
+local targetSection = CreateLabel("Select Targets")
+
+local function refreshTargetList()
+    -- This is a simplified version. For a full dropdown you'd need more complex code.
+end
+
+CreateButton(nil, "Add Target (Type in chat or edit script)", function()
+    -- For simplicity, we'll use a simple input method via chat or you can extend this
+    print("Add target logic - edit script to add names dynamically if needed")
+end)
+
+CreateToggle("Start Kill Targets", false, function(state)
+    kill = state
+    if kill then
+        task.spawn(function()
+            while kill do
+                local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+                if punch and not character:FindFirstChild("Punch") then
+                    punch.Parent = character
+                end
+
+                local rightHand = character:FindFirstChild("RightHand")
+                local leftHand = character:FindFirstChild("LeftHand")
+
+                if rightHand and leftHand then
+                    for _, name in ipairs(targetPlayerNames) do
+                        local target = Players:FindFirstChild(name)
+                        if target and target ~= LocalPlayer and target.Character then
+                            local rootPart = target.Character:FindFirstChild("HumanoidRootPart")
+                            local humanoid = target.Character:FindFirstChild("Humanoid")
+                            if rootPart and humanoid and humanoid.Health > 0 then
+                                pcall(function()
+                                    firetouchinterest(rightHand, rootPart, 1)
+                                    firetouchinterest(leftHand, rootPart, 1)
+                                    firetouchinterest(rightHand, rootPart, 0)
+                                    firetouchinterest(leftHand, rootPart, 0)
+                                end)
+                            end
+                        end
+                    end
+                end
+                task.wait(0.05)
+            end
+        end)
+    end
+end)
+
+CreateLabel("View Player (Spy)")
+
+CreateToggle("Enable View Player", false, function(bool)
+    spying = bool
+    if not spying then
+        local cam = workspace.CurrentCamera
+        cam.CameraSubject = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") or LocalPlayer
+        return
+    end
+
+    task.spawn(function()
+        while spying do
+            local target = Players:FindFirstChild(targetPlayerName)
+            if target and target ~= LocalPlayer then
+                local humanoid = target.Character and target.Character:FindFirstChild("Humanoid")
+                if humanoid then
+                    workspace.CurrentCamera.CameraSubject = humanoid
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
+end)
+
+-- How to add targets (temporary simple way)
+print("To add targets, edit the 'targetPlayerNames' table at the top of the script.")
+-- Example: targetPlayerNames = {"PlayerName1", "PlayerName2"} 
