@@ -14,13 +14,13 @@ local THEME = {
 
 -- Create ScreenGui
 local screen = Instance.new("ScreenGui")
-screen.Name = "VoidUI"
+screen.Name = "Kill Script"
 screen.ResetOnSpawn = false
 screen.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Create Window
 local window = Instance.new("Frame")
-window.Name = "window"
+window.Name = "Killer"
 window.Size = UDim2.new(0, 440, 0, 580)
 window.Position = UDim2.new(0.5, -220, 0.5, -290)
 window.BackgroundColor3 = THEME.Background
@@ -206,24 +206,401 @@ local function CreateFolder(name)
     return content
 end
 
--- ==================== EXAMPLES ====================
-CreateButton(nil, "Launch Script", function()
-    print("🚀 Script Activated!")
+Killer:AddSwitch("Auto Good Karma", function(bool)
+    autoGoodKarma = bool
+    task.spawn(function()
+        while autoGoodKarma do
+            local playerChar = LocalPlayer.Character
+            local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+            if playerChar and rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer then
+                        local evilKarma = target:FindFirstChild("evilKarma")
+                        local goodKarma = target:FindFirstChild("goodKarma")
+                        if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and evilKarma.Value > goodKarma.Value then
+                            local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                            if rootPart then
+                                firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+                            end
+                        end
+                    end
+                end
+            end
+            task.wait(0.01)
+        end
+    end)
 end)
 
-CreateToggle("Fly Mode", false, function(state)
-    print("Fly Mode:", state)
+-- Auto Bad Karma
+Killer:AddSwitch("Auto Bad Karma", function(bool)
+    autoBadKarma = bool
+    task.spawn(function()
+        while autoBadKarma do
+            local playerChar = LocalPlayer.Character
+            local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+            if playerChar and rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer then
+                        local evilKarma = target:FindFirstChild("evilKarma")
+                        local goodKarma = target:FindFirstChild("goodKarma")
+                        if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and goodKarma.Value > evilKarma.Value then
+                            local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                            if rootPart then
+                                firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+                            end
+                        end
+                    end
+                end
+            end
+            task.wait(0.01)
+        end
+    end)
 end)
 
-CreateToggle("God Mode", true, function(state)
-    print("God Mode:", state)
+local targetDropdownItems = {}
+local targetPlayerNames = {}
+local selectedTarget = nil
+local autoKill = false
+
+Killer:AddSwitch("Auto Kill", function(bool)
+    autoKill = bool
+    task.spawn(function()
+        while autoKill do
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local rightHand = character:FindFirstChild("RightHand")
+            local leftHand = character:FindFirstChild("LeftHand")
+            local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+            if punch and not character:FindFirstChild("Punch") then
+                punch.Parent = character
+            end
+            if rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer and not playerWhitelist[target.Name] then
+                        local targetChar = target.Character
+                        local rootPart = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+                        if rootPart then
+                            pcall(function()
+                                firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+                            end)
+                        end
+                    end
+                end
+            end
+            task.wait(0.05)
+        end
+    end)
 end)
 
-local settings = CreateFolder("Settings")
-CreateButton(settings, "Reset Character", function() print("Character Reset") end)
-CreateButton(settings, "Speed Boost", function() print("Speed Boosted") end)
+local friendWhitelistActive = false
+Killer:AddButton("Auto Whitelist Friends", function(state)
+    friendWhitelistActive = state
+    if state then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and LocalPlayer:IsFriendsWith(player.UserId) then
+                playerWhitelist[player.Name] = true
+            end
+        end
+        Players.PlayerAdded:Connect(function(player)
+            if friendWhitelistActive and player ~= LocalPlayer and LocalPlayer:IsFriendsWith(player.UserId) then
+                playerWhitelist[player.Name] = true
+            end
+        end)
+    else
+        for name in pairs(playerWhitelist) do
+            local friend = Players:FindFirstChild(name)
+            if friend and LocalPlayer:IsFriendsWith(friend.UserId) then
+                playerWhitelist[name] = nil
+            end
+        end
+    end
+end)
 
-local tools = CreateFolder("Tools")
-CreateButton(tools, "Give Tool", function() print("Tool Given") end)
+Killer:AddButton("Equip Wild Wizard", function()
+        equipPet("Wild Wizard")
+    end)
 
-print("VOID UI Loaded - Very Black Theme + Draggable Ready")
+    Killer:AddButton("Equip Mighty Monster", function()
+        equipPet("Mighty Monster")
+    end)
+else
+    warn("GodmodeTab is nil")
+end
+
+local titleLabel = Killer:AddLabel("OP Player Kill")
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local targetDropdown = Killer:AddDropdown("Select Target", function(displayName)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.DisplayName == displayName then
+            if not table.find(targetPlayerNames, player.Name) then
+                table.insert(targetPlayerNames, player.Name)
+            end
+            selectedTarget = player.Name
+            break
+        end
+    end
+end)
+
+Killer:AddButton("Remove Selected Target", function()
+    if selectedTarget then
+        for i, v in ipairs(targetPlayerNames) do
+            if v == selectedTarget then
+                table.remove(targetPlayerNames, i)
+                break
+            end
+        end
+        selectedTarget = nil
+    end
+end)
+
+-- Populate initial players
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        targetDropdown:Add(player.DisplayName)
+        targetDropdownItems[player.Name] = player.DisplayName
+    end
+end
+
+-- Player joins
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        targetDropdown:Add(player.DisplayName)
+        targetDropdownItems[player.Name] = player.DisplayName
+    end
+end)
+
+-- Player leaves
+Players.PlayerRemoving:Connect(function(player)
+    if targetDropdownItems[player.Name] then
+        targetDropdownItems[player.Name] = nil
+        targetDropdown:Clear()
+        for _, displayName in pairs(targetDropdownItems) do
+            targetDropdown:Add(displayName)
+        end
+    end
+    for i = #targetPlayerNames, 1, -1 do
+        if targetPlayerNames[i] == player.Name then
+            table.remove(targetPlayerNames, i)
+        end
+    end
+end)
+
+-- Start Kill with list of targets
+local kill = false
+Killer:AddButton("Slime Out Target", function(state)
+    kill = state
+    task.spawn(function()
+        while kill do
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+            if punch and not character:FindFirstChild("Punch") then
+                punch.Parent = character
+            end
+            local rightHand = character:FindFirstChild("RightHand")
+            local leftHand = character:FindFirstChild("LeftHand")
+            if rightHand and leftHand then
+                for _, name in ipairs(targetPlayerNames) do
+                    local target = Players:FindFirstChild(name)
+                    if target and target ~= LocalPlayer and target.Character then
+                        local rootPart = target.Character:FindFirstChild("HumanoidRootPart")
+                        local humanoid = target.Character:FindFirstChild("Humanoid")
+                        if rootPart and humanoid and humanoid.Health > 0 then
+                            pcall(function()
+                                firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+                            end)
+                        end
+                    end
+                end
+            end
+            task.wait(0.05)
+        end
+    end)
+end)
+
+-- View Player (Spy)
+local targetPlayerName = nil
+local spyTargetDropdownItems = {}
+local spyTargetDropdown = Killer:AddDropdown("Select View Target", function(displayName)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.DisplayName == displayName then
+            targetPlayerName = player.Name
+            break
+        end
+    end
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        spyTargetDropdown:Add(player.DisplayName)
+        spyTargetDropdownItems[player.Name] = player.DisplayName
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        spyTargetDropdown:Add(player.DisplayName)
+        spyTargetDropdownItems[player.Name] = player.DisplayName
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if player ~= LocalPlayer then
+        spyTargetDropdownItems[player.Name] = nil
+        spyTargetDropdown:Clear()
+        for _, displayName in pairs(spyTargetDropdownItems) do
+            spyTargetDropdown:Add(displayName)
+        end
+    end
+end)
+
+Killer:AddButton("View Player", function(bool)
+    spying = bool
+    if not spying then
+        local cam = workspace.CurrentCamera
+        cam.CameraSubject = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") or LocalPlayer
+        return
+    end
+    task.spawn(function()
+        while spying do
+            local target = Players:FindFirstChild(targetPlayerName)
+            if target and target ~= LocalPlayer then
+                local humanoid = target.Character and target.Character:FindFirstChild("Humanoid")
+                if humanoid then
+                    workspace.CurrentCamera.CameraSubject = humanoid
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
+end)
+
+local titleLabel = Killer:AddLabel("-----------------")
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+
+Killer:AddButton("NaN", function(state)
+    local player = game.Players.LocalPlayer
+    local targetCFrame = CFrame.new(
+        -38.9849625, 0.111833394, 23.6454487,
+        0.228692636, 5.38890532e-08, 0.973498702,
+        9.52623491e-09, 1, -5.75939509e-08,
+        -0.973498702, 2.24450893e-08, 0.228692636
+    )
+
+    -- Cleanup old connection
+    if _G.NaNLockConnection then
+        _G.NaNLockConnection:Disconnect()
+        _G.NaNLockConnection = nil
+    end
+
+    if state then
+        -- === TURNED ON ===
+        
+        -- NaN size
+        local args = {"changeSize", 0/0}
+        game:GetService("ReplicatedStorage"):WaitForChild("rEvents"):WaitForChild("changeSpeedSizeRemote"):InvokeServer(unpack(args))
+
+        -- Function to apply teleport + lock
+        local function applyLock(character)
+            if not character then return end
+            local root = character:WaitForChild("HumanoidRootPart", 5)
+            if not root then return end
+
+            root.CFrame = targetCFrame
+            root.Anchored = true
+            root.Velocity = Vector3.new(0, 0, 0)
+            root.RotVelocity = Vector3.new(0, 0, 0)
+
+            -- Strong continuous lock
+            if _G.NaNLockConnection then
+                _G.NaNLockConnection:Disconnect()
+            end
+
+            _G.NaNLockConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if root and root.Parent then
+                    root.CFrame = targetCFrame
+                    root.Velocity = Vector3.new(0, 0, 0)
+                    root.RotVelocity = Vector3.new(0, 0, 0)
+                end
+            end)
+        end
+
+        -- Apply to current character
+        local character = player.Character or player.CharacterAdded:Wait()
+        applyLock(character)
+
+        -- Auto re-apply on respawn
+        if not _G.NaNCharacterAddedConn then
+            _G.NaNCharacterAddedConn = player.CharacterAdded:Connect(function(newChar)
+                task.wait(0.1) -- small delay to let character fully load
+                applyLock(newChar)
+            end)
+        end
+
+    else
+        -- === TURNED OFF ===
+        local character = player.Character
+        if character then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.Anchored = false
+                root.Velocity = Vector3.new(0, 5, 0)
+            end
+        end
+
+        -- Clean up connections
+        if _G.NaNLockConnection then
+            _G.NaNLockConnection:Disconnect()
+            _G.NaNLockConnection = nil
+        end
+
+        if _G.NaNCharacterAddedConn then
+            _G.NaNCharacterAddedConn:Disconnect()
+            _G.NaNCharacterAddedConn = nil
+        end
+    end
+end)
+
+local switch = Killer:AddButton("Lock Pos", function(Value)
+    if Value then
+        -- Lock Position
+        local currentPos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+        getgenv().posLock = game:GetService("RunService").Heartbeat:Connect(function()
+            if game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = currentPos
+            end
+        end)
+    else
+        -- Unlock Position
+        if getgenv().posLock then
+            getgenv().posLock:Disconnect()
+            getgenv().posLock = nil
+        end
+    end
+end)
+
+Killer:AddButton("Rejoin Server", function()
+    local TeleportService = game:GetService("TeleportService")
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+end)
