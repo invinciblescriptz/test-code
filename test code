@@ -2,7 +2,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/invin
 
 local window = library:AddWindow("INVINCIBLE ┃ GENERAL ", {
     main_color = Color3.fromRGB(0, 0, 0),
-    min_size = Vector2.new(500, 990),
+    min_size = Vector2.new(700, 980),
     can_resize = false,
 })
 
@@ -23,7 +23,8 @@ local availableTargets = {}
 
 local titleLabel = Killer:AddLabel("Select Pack")
 titleLabel.TextSize = 18
-titleLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local dropdown = Killer:AddDropdown("Select Pet", function(text)
     local petsFolder = game.Players.LocalPlayer.petsFolder
@@ -141,8 +142,19 @@ end)
 
 local titleLabel = Killer:AddLabel("knuckle sandwiches")
 titleLabel.TextSize = 18
-titleLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 
+
+local button = Killer:AddButton("Remove Punch Anim", function() local blockedAnimations = { ["rbxassetid://3638729053"] = true, ["rbxassetid://3638767427"] = true, } local function setupAnimationBlocking() local char = game.Players.LocalPlayer.Character if not char or not char:FindFirstChild("Humanoid") then return end local humanoid = char:FindFirstChild("Humanoid") for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do if track.Animation then local animId = track.Animation.AnimationId local animName = track.Name:lower() if blockedAnimations[animId] or animName:match("punch") or animName:match("attack") or animName:match("right") then track:Stop() end end end if not _G.AnimBlockConnection then local connection = humanoid.AnimationPlayed:Connect(function(track) if track.Animation then local animId = track.Animation.AnimationId local animName = track.Name:lower() if blockedAnimations[animId] or animName:match("punch") or animName:match("attack") or animName:match("right") then track:Stop() end end end) _G.AnimBlockConnection = connection end end setupAnimationBlocking() local function overrideToolActivation() local function processTool(tool) if tool and (tool.Name == "Punch" or tool.Name:match("Attack") or tool.Name:match("Right")) then if not tool:GetAttribute("ActivatedOverride") then tool:SetAttribute("ActivatedOverride", true) local connection = tool.Activated:Connect(function() task.wait(0.05) local char = game.Players.LocalPlayer.Character if char and char:FindFirstChild("Humanoid") then for _, track in pairs(char.Humanoid:GetPlayingAnimationTracks()) do if track.Animation then local animId = track.Animation.AnimationId local animName = track.Name:lower() if blockedAnimations[animId] or animName:match("punch") or animName:match("attack") or animName:match("right") then track:Stop() end end end end end) if not _G.ToolConnections then _G.ToolConnections = {} end _G.ToolConnections[tool] = connection end end end for _, tool in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do processTool(tool) end local char = game.Players.LocalPlayer.Character if char then for _, tool in pairs(char:GetChildren()) do if tool:IsA("Tool") then processTool(tool) end end end if not _G.BackpackAddedConnection then _G.BackpackAddedConnection = game.Players.LocalPlayer.Backpack.ChildAdded:Connect(function(child) if child:IsA("Tool") then task.wait(0.1) processTool(child) end end) end if not _G.CharacterToolAddedConnection and char then _G.CharacterToolAddedConnection = char.ChildAdded:Connect(function(child) if child:IsA("Tool") then task.wait(0.1) processTool(child) end end) end end overrideToolActivation() if not _G.AnimMonitorConnection then _G.AnimMonitorConnection = game:GetService("RunService").Heartbeat:Connect(function() if tick() % 0.5 < 0.01 then local char = game.Players.LocalPlayer.Character if char and char:FindFirstChild("Humanoid") then for _, track in pairs(char.Humanoid:GetPlayingAnimationTracks()) do if track.Animation then local animId = track.Animation.AnimationId local animName = track.Name:lower() if blockedAnimations[animId] or animName:match("punch") or animName:match("attack") or animName:match("right") then track:Stop() end end end end end end) end if not _G.CharacterAddedConnection then _G.CharacterAddedConnection = game.Players.LocalPlayer.CharacterAdded:Connect(function(newChar) task.wait(1) setupAnimationBlocking() overrideToolActivation() if _G.CharacterToolAddedConnection then _G.CharacterToolAddedConnection:Disconnect() end _G.CharacterToolAddedConnection = newChar.ChildAdded:Connect(function(child) if child:IsA("Tool") then task.wait(0.1) processTool(child) end end) end) end end)
+button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+button.TextColor3 = Color3.fromRGB(255, 256, 255)
+
+function RecoveryPunch() if _G.AnimBlockConnection then _G.AnimBlockConnection:Disconnect() _G.AnimBlockConnection = nil end if _G.AnimMonitorConnection then _G.AnimMonitorConnection:Disconnect() _G.AnimMonitorConnection = nil end if _G.ToolConnections then for _, conn in pairs(_G.ToolConnections) do if conn then conn:Disconnect() end end _G.ToolConnections = nil end if _G.BackpackAddedConnection then _G.BackpackAddedConnection:Disconnect() _G.BackpackAddedConnection = nil end if _G.CharacterToolAddedConnection then _G.CharacterToolAddedConnection:Disconnect() _G.CharacterToolAddedConnection = nil end if _G.CharacterAddedConnection then _G.CharacterAddedConnection:Disconnect() _G.CharacterAddedConnection = nil end end 
+
+local recoverButton = Killer:AddButton("Recover Punch Anim", function() RecoveryPunch() end)
+recoverButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+recoverButton.TextColor3 = Color3.fromRGB(255, 256, 255)
 
 Killer:AddSwitch("Auto Equip Punch", function(state)
     autoEquipPunch = state
@@ -242,7 +254,9 @@ end)
 
 local titleLabel = Killer:AddLabel("OP Kill Players")
 titleLabel.TextSize = 18
-titleLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
 local targetDropdown = Killer:AddDropdown("Select Target", function(displayName)
     for _, player in ipairs(Players:GetPlayers()) do
         if player.DisplayName == displayName then
@@ -390,6 +404,7 @@ Killer:AddSwitch("View Player", function(bool)
         end
     end)
 end)
+
 
 local titleLabel = Killer:AddLabel("____________________")
 titleLabel.TextSize = 18
@@ -613,13 +628,10 @@ titleLabel.TextSize = 18
 titleLabel.Font = Enum.Font.Bangers        
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-
 local titleLabel = Killer:AddLabel("AUTO KILL")
 titleLabel.TextSize = 18
 titleLabel.Font = Enum.Font.Bangers        
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-
 
 -- God Mode (join brawl)
 local godModeToggle = false
@@ -817,6 +829,527 @@ Killer:AddButton("Goofball Button", function()
         end)
     end
 end)
+
+local fastTab = window:AddTab("Fast Farming")
+
+local titleLabel = fastTab:AddLabel("Rebirth")
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- ==================== ANTI-IDLE & ANTI-AD ====================
+player.Idled:Connect(function()
+    virtualUser:CaptureController()
+    virtualUser:ClickButton2(Vector2.new())
+end)
+
+local function deleteAds()
+    for _, portal in pairs(game:GetDescendants()) do
+        if portal.Name == "RobloxForwardPortals" then
+            portal:Destroy()
+        end
+    end
+    
+    if _G.ads then _G.ads:Disconnect() end
+    _G.ads = game.DescendantAdded:Connect(function(descendant)
+        if descendant.Name == "RobloxForwardPortals" then
+            descendant:Destroy()
+        end
+    end)
+end
+deleteAds()
+
+-- ==================== FAST REBIRTH ====================
+local isRunning = false
+
+local function managePets(petName)
+    -- Unequip all
+    for _, folder in pairs(player.petsFolder:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in pairs(folder:GetChildren()) do
+                replicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+            end
+        end
+    end
+    task.wait(0.1)
+    
+    -- Equip desired pet
+    for _, pet in pairs(player.petsFolder.Unique:GetChildren()) do
+        if pet.Name == petName then
+            replicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+        end
+    end
+end
+
+local function doRebirth()
+    local rebirths = rebirthsStat.Value
+    local strengthTarget = 5000 + (rebirths * 2550)
+    
+    while isRunning and player.leaderstats.Strength.Value < strengthTarget do
+        local reps = player.MembershipType == Enum.MembershipType.Premium and 12 or 20
+        for _ = 1, reps do
+            muscleEvent:FireServer("rep")
+        end
+        task.wait(0.02)
+    end
+    
+    if isRunning and player.leaderstats.Strength.Value >= strengthTarget then
+        managePets("Tribal Overlord")
+        task.wait(0.25)
+        
+        local before = rebirthsStat.Value
+        repeat
+            replicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+            task.wait(0.05)
+        until rebirthsStat.Value > before or not isRunning
+    end
+end
+
+local function fastRebirthLoop()
+    while isRunning do
+        managePets("Swift Samurai")
+        doRebirth()
+        task.wait(0.5)
+    end
+end
+
+fastTab:AddSwitch("Fast Rebirth", function(state)
+    isRunning = state
+    if isRunning then
+        task.spawn(fastRebirthLoop)
+    end
+end)
+
+-- ==================== SIZE & POSITION LOCK ====================
+local sizeRunning = false
+local sizeThread
+
+local sizeSwitch = fastTab:AddSwitch("Set Size 1", function(bool)
+    sizeRunning = bool
+    if bool then
+        sizeThread = coroutine.create(function()
+            while sizeRunning do
+                replicatedStorage.rEvents.changeSpeedSizeRemote:InvokeServer("changeSize", 1)
+                task.wait(0.01)
+            end
+        end)
+        coroutine.resume(sizeThread)
+    elseif sizeThread then
+        sizeRunning = false
+    end
+end)
+
+-- Position Lock
+local posLocked = false
+local lockedPosition = nil
+
+local function lockPosition()
+    if not posLocked then return end
+    local rootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    local bp = rootPart:FindFirstChild("PositionLocker") or Instance.new("BodyPosition")
+    bp.Name = "PositionLocker"
+    bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bp.P = 100000
+    bp.Position = lockedPosition
+    bp.Parent = rootPart
+end
+
+local function unlockPosition()
+    local rootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if rootPart then
+        local bp = rootPart:FindFirstChild("PositionLocker")
+        if bp then bp:Destroy() end
+    end
+end
+
+fastTab:AddSwitch("Lock Position", function(bool)
+    posLocked = bool
+    if bool then
+        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if root then lockedPosition = root.Position end
+        lockPosition()
+    else
+        unlockPosition()
+    end
+end)
+
+player.CharacterAdded:Connect(function(char)
+    task.wait(1)
+    local root = char:WaitForChild("HumanoidRootPart", 5)
+    if posLocked and root then
+        lockedPosition = root.Position
+        lockPosition()
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if posLocked then lockPosition() end
+        task.wait(0.1)
+    end
+end)
+
+local titleLabel = fastTab:AddLabel("Fast Strength")
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- ==================== FAST REP ====================
+local farmRunning = false
+local repSpeed = 350
+local pingControl = true
+local networkStats = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]
+
+local function getCurrentPing()
+    return networkStats:GetValue()
+end
+
+local function getAdaptiveSpeed(ping)
+    if ping < 80 then return 500
+    elseif ping < 150 then return 300
+    elseif ping < 250 then return 100
+    else return 50 end
+end
+
+local function startAutoRep()
+    while farmRunning do
+        local currentPing = getCurrentPing()
+        local repsToFire = pingControl and getAdaptiveSpeed(currentPing) or repSpeed
+        local delay = math.clamp(currentPing / 2500, 0.001, 0.1)
+        
+        for i = 1, repsToFire do
+            muscleEvent:FireServer("rep")
+            if i % 500 == 0 then task.wait() end
+        end
+        task.wait(delay)
+    end
+end
+
+fastTab:AddTextBox("Rep Speed:", function(txt)
+    local num = tonumber(txt)
+    if num then repSpeed = math.clamp(math.floor(num), 1, 1000) end
+end)
+
+fastTab:AddSwitch("Controlled Speed", function(state)
+    pingControl = state
+end):Set(true)
+
+fastTab:AddSwitch("Fast Rep", function(state)
+    farmRunning = state
+    if state then task.spawn(startAutoRep) end
+end)
+
+-- ==================== INVINCIBLE ANTI-AFK GUI ====================
+local antiAFKGui = nil
+local antiAFKConnections = {}
+
+local function createAntiAFKGui()
+    if antiAFKGui then return end
+    
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local VirtualUser = game:GetService("VirtualUser")
+    local player = Players.LocalPlayer
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "InvincibleAntiAFK"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 350, 0, 220)
+    frame.Position = UDim2.new(0.7, 0, 0.1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    frame.BorderSizePixel = 0
+    frame.Active = true
+    frame.Draggable = true
+    frame.Parent = screenGui
+    
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 8)
+    uiCorner.Parent = frame
+    
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(200, 0, 0)
+    uiStroke.Thickness = 2
+    uiStroke.Parent = frame
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.BackgroundTransparency = 1
+    title.Text = "Invincible Anti AFK"
+    title.TextColor3 = Color3.fromRGB(255, 50, 50)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = frame
+    
+    local titleLine = Instance.new("Frame")
+    titleLine.Size = UDim2.new(1, -20, 0, 2)
+    titleLine.Position = UDim2.new(0, 10, 0, 38)
+    titleLine.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    titleLine.BorderSizePixel = 0
+    titleLine.Parent = frame
+    
+    -- Labels
+    local timeLabel = Instance.new("TextLabel")
+    timeLabel.Size = UDim2.new(1, -20, 0, 30)
+    timeLabel.Position = UDim2.new(0, 10, 0, 50)
+    timeLabel.BackgroundTransparency = 1
+    timeLabel.Text = "⏳ Time: 00:00:00"
+    timeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    timeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    timeLabel.Font = Enum.Font.Gotham
+    timeLabel.TextSize = 18
+    timeLabel.Parent = frame
+    
+    local fpsLabel = Instance.new("TextLabel")
+    fpsLabel.Size = UDim2.new(1, -20, 0, 30)
+    fpsLabel.Position = UDim2.new(0, 10, 0, 85)
+    fpsLabel.BackgroundTransparency = 1
+    fpsLabel.Text = "🚀 FPS: 60"
+    fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    fpsLabel.Font = Enum.Font.Gotham
+    fpsLabel.TextSize = 18
+    fpsLabel.Parent = frame
+    
+    local msLabel = Instance.new("TextLabel")
+    msLabel.Size = UDim2.new(1, -20, 0, 30)
+    msLabel.Position = UDim2.new(0, 10, 0, 120)
+    msLabel.BackgroundTransparency = 1
+    msLabel.Text = "📡 MS: 42"
+    msLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    msLabel.TextXAlignment = Enum.TextXAlignment.Left
+    msLabel.Font = Enum.Font.Gotham
+    msLabel.TextSize = 18
+    msLabel.Parent = frame
+    
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(1, -20, 0, 30)
+    statusLabel.Position = UDim2.new(0, 10, 0, 170)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "✅ Active - Preventing AFK Kick"
+    statusLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+    statusLabel.TextXAlignment = Enum.TextXAlignment.Center
+    statusLabel.Font = Enum.Font.GothamBold
+    statusLabel.TextSize = 16
+    statusLabel.Parent = frame
+    
+    antiAFKGui = screenGui
+    
+    -- Anti-AFK Logic
+    local idledConn = player.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+        statusLabel.Text = "🔄 Roblox tried to kick you... Blocked!"
+        task.wait(2)
+        statusLabel.Text = "✅ Active - Preventing AFK Kick"
+    end)
+    table.insert(antiAFKConnections, idledConn)
+    
+    -- FPS Counter
+    local fps = 0
+    local fpsConn = RunService.RenderStepped:Connect(function()
+        fps += 1
+    end)
+    table.insert(antiAFKConnections, fpsConn)
+    
+    task.spawn(function()
+        while antiAFKGui and antiAFKGui.Parent do
+            fpsLabel.Text = "🚀 FPS: " .. fps
+            fps = 0
+            task.wait(1)
+        end
+    end)
+    
+    -- Timer
+    local startTime = tick()
+    task.spawn(function()
+        while antiAFKGui and antiAFKGui.Parent do
+            local elapsed = tick() - startTime
+            local hours = math.floor(elapsed / 3600)
+            local minutes = math.floor((elapsed % 3600) / 60)
+            local seconds = math.floor(elapsed % 60)
+            timeLabel.Text = string.format("⏳ Time: %02d:%02d:%02d", hours, minutes, seconds)
+            task.wait(0.5)
+        end
+    end)
+    
+    -- Ping (simulated)
+    task.spawn(function()
+        while antiAFKGui and antiAFKGui.Parent do
+            local ping = math.random(25, 75)
+            msLabel.Text = "📡 MS: " .. ping
+            task.wait(2)
+        end
+    end)
+    
+    print("Invincible Anti-AFK GUI Enabled")
+end
+
+local function destroyAntiAFKGui()
+    if antiAFKGui then
+        antiAFKGui:Destroy()
+        antiAFKGui = nil
+    end
+    for _, conn in ipairs(antiAFKConnections) do
+        if conn then conn:Disconnect() end
+    end
+    antiAFKConnections = {}
+    print("Invincible Anti-AFK GUI Disabled")
+end
+
+-- ==================== SWITCH ====================
+fastTab:AddSwitch("Anti Afk", function(state)
+    if state then
+        createAntiAFKGui()
+    else
+        destroyAntiAFKGui()
+    end
+end)
+
+local titleLabel = fastTab:AddLabel("Other")
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.Bangers        
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- ==================== AUTO BOOSTS ====================
+local ProteinEggLabel = fastTab:AddLabel("Protein Eggs: 0")
+ProteinEggLabel.TextSize = 14
+
+task.spawn(function()
+    while true do
+        local count = 0
+        if PlayerData and PlayerData.Backpack then
+            for _, item in ipairs(PlayerData.Backpack:GetChildren()) do
+                if item.Name == "Protein Egg" then count += 1 end
+            end
+        end
+        ProteinEggLabel.Text = "Protein Eggs: " .. count
+        task.wait(7.5)
+    end
+end)
+
+local ProteinEggBoostLabel = fastTab:AddLabel("Protein Egg Timer: 00:00")
+ProteinEggBoostLabel.TextSize = 14
+
+local function formatTime(s)
+    return string.format("%02d:%02d", math.floor(s/60), s%60)
+end
+
+task.spawn(function()
+    while true do
+        local boost = player:FindFirstChild("boostTimersFolder") and player.boostTimersFolder:FindFirstChild("Protein Egg")
+        if boost and boost:IsA("IntValue") then
+            ProteinEggBoostLabel.Text = "Protein Egg Timer: " .. formatTime(boost.Value)
+        else
+            ProteinEggBoostLabel.Text = "Protein Egg Timer: 00:00"
+        end
+        task.wait(0.5)
+    end
+end)
+
+-- Auto Protein Egg
+local running1 = false
+fastTab:AddSwitch("Auto Egg", function(state)
+    running1 = state
+end)
+
+task.spawn(function()
+    while true do
+        if running1 then
+            local tool = player.Character:FindFirstChild("Protein Egg") or player.Backpack:FindFirstChild("Protein Egg")
+            if tool then
+                muscleEvent:FireServer("proteinEgg", tool)
+            end
+            task.wait(1800)
+        else
+            task.wait(1)
+        end
+    end
+end)
+
+-- Auto Tropical Shake
+local running2 = false
+fastTab:AddSwitch("Auto Shake", function(state)
+    running2 = state
+end)
+
+task.spawn(function()
+    while true do
+        if running2 then
+            local tool = player.Character:FindFirstChild("Tropical Shake") or player.Backpack:FindFirstChild("Tropical Shake")
+            if tool then
+                muscleEvent:FireServer("tropicalShake", tool)
+            end
+            task.wait(450)
+        else
+            task.wait(1)
+        end
+    end
+end)
+
+-- ==================== OTHER FEATURES ====================
+fastTab:AddSwitch("Spin Fortune Wheel", function(bool)
+    _G.AutoSpinWheel = bool
+    if bool then
+        task.spawn(function()
+            while _G.AutoSpinWheel do
+                replicatedStorage.rEvents.openFortuneWheelRemote:InvokeServer("openFortuneWheel", replicatedStorage.fortuneWheelChances["Fortune Wheel"])
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+-- Perk Pet Equip
+local statPetDropdown = fastTab:AddDropdown("Perk Pet Equip", function(text)
+    -- Unequip all
+    for _, folder in pairs(player.petsFolder:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in pairs(folder:GetChildren()) do
+                replicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+            end
+        end
+    end
+    task.wait(0.2)
+    
+    local count = 0
+    for _, pet in pairs(player.petsFolder.Unique:GetChildren()) do
+        if pet.Name == text and count < 8 then
+            replicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+            count += 1
+            task.wait(0.1)
+        end
+    end
+end)
+
+statPetDropdown:Add("Swift Samurai")
+statPetDropdown:Add("Tribal Overlord")
+
+-- Jungle Buttons
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+fastTab:AddButton("Jungle Lift", function()
+    hrp.CFrame = CFrame.new(-8642.396484375, 6.7980651855, 2086.1030273)
+    task.wait(0.2)
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(0.05)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end)
+
+fastTab:AddButton("Jungle Squat", function()
+    hrp.CFrame = CFrame.new(-8371.43359375, 6.79806327, 2858.88525390)
+    task.wait(0.2)
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(0.05)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end)
+
 
 local miscTab = window:AddTab("Misc")
 local mobileFolder = miscTab:AddFolder("Rock Farming ")
