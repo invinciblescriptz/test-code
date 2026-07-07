@@ -24,7 +24,6 @@ local autoGoodKarma = false
 local autoBadKarma = false
 local autoKill = false
 local friendWhitelistActive = false
-local kill = false
 local spying = false
 local targetPlayerNames = {}
 local selectedTarget = nil
@@ -319,16 +318,14 @@ CreateButton(nil, "Auto Whitelist Friends", function()
 end)
 
 CreateButton(nil, "Equip Wild Wizard", function()
-    -- Add your equip function here if you have one
     print("Equipping Wild Wizard")
 end)
 
 CreateButton(nil, "Equip Mighty Monster", function()
-    -- Add your equip function here if you have one
     print("Equipping Mighty Monster")
 end)
 
-CreateLabel(Misc")
+CreateLabel("Misc")
 
 -- Fast Punch
 CreateToggle("Fast Punch", false, function(state)
@@ -378,7 +375,8 @@ CreateToggle("Lock Position", false, function(Value)
     end
 end)
 
-CreateToggle("NaN", function(state)
+-- NaN
+CreateToggle("NaN", false, function(state)
     local player = game.Players.LocalPlayer
     local targetCFrame = CFrame.new(
         -38.9849625, 0.111833394, 23.6454487,
@@ -387,20 +385,15 @@ CreateToggle("NaN", function(state)
         -0.973498702, 2.24450893e-08, 0.228692636
     )
 
-    -- Cleanup old connection
     if _G.NaNLockConnection then
         _G.NaNLockConnection:Disconnect()
         _G.NaNLockConnection = nil
     end
 
     if state then
-        -- === TURNED ON ===
-        
-        -- NaN size
         local args = {"changeSize", 0/0}
         game:GetService("ReplicatedStorage"):WaitForChild("rEvents"):WaitForChild("changeSpeedSizeRemote"):InvokeServer(unpack(args))
 
-        -- Function to apply teleport + lock
         local function applyLock(character)
             if not character then return end
             local root = character:WaitForChild("HumanoidRootPart", 5)
@@ -411,7 +404,6 @@ CreateToggle("NaN", function(state)
             root.Velocity = Vector3.new(0, 0, 0)
             root.RotVelocity = Vector3.new(0, 0, 0)
 
-            -- Strong continuous lock
             if _G.NaNLockConnection then
                 _G.NaNLockConnection:Disconnect()
             end
@@ -425,20 +417,17 @@ CreateToggle("NaN", function(state)
             end)
         end
 
-        -- Apply to current character
         local character = player.Character or player.CharacterAdded:Wait()
         applyLock(character)
 
-        -- Auto re-apply on respawn
         if not _G.NaNCharacterAddedConn then
             _G.NaNCharacterAddedConn = player.CharacterAdded:Connect(function(newChar)
-                task.wait(0.1) -- small delay to let character fully load
+                task.wait(0.1)
                 applyLock(newChar)
             end)
         end
 
     else
-        -- === TURNED OFF ===
         local character = player.Character
         if character then
             local root = character:FindFirstChild("HumanoidRootPart")
@@ -448,7 +437,6 @@ CreateToggle("NaN", function(state)
             end
         end
 
-        -- Clean up connections
         if _G.NaNLockConnection then
             _G.NaNLockConnection:Disconnect()
             _G.NaNLockConnection = nil
@@ -461,12 +449,12 @@ CreateToggle("NaN", function(state)
     end
 end)
 
-local AntiKnockbackToggle = CreateToggle:AddSwitch("Prevent Knockback", function(state)
+-- Prevent Knockback
+CreateToggle("Prevent Knockback", false, function(state)
     getgenv().AntiKnockback = state
     
     if state then
         print("✅ Anti Knockback ENABLED")
-        
         spawn(function()
             while getgenv().AntiKnockback do
                 pcall(function()
@@ -475,7 +463,6 @@ local AntiKnockbackToggle = CreateToggle:AddSwitch("Prevent Knockback", function
                     
                     local root = character:FindFirstChild("HumanoidRootPart")
                     if root then
-                        -- Only remove knockback forces, don't touch normal movement
                         for _, v in pairs(root:GetChildren()) do
                             if v:IsA("BodyVelocity") or v:IsA("BodyThrust") or v:IsA("BodyForce") or 
                                v:IsA("LinearVelocity") or v:IsA("VectorForce") then
@@ -484,7 +471,7 @@ local AntiKnockbackToggle = CreateToggle:AddSwitch("Prevent Knockback", function
                         end
                     end
                 end)
-                wait(0.03)  -- Slightly faster detection
+                task.wait(0.03)
             end
         end)
     else
@@ -492,7 +479,8 @@ local AntiKnockbackToggle = CreateToggle:AddSwitch("Prevent Knockback", function
     end
 end)
 
-CreateToggle:AddSwitch("Hide Karma Frames", function(bool)
+-- Hide Karma Frames
+CreateToggle("Hide Karma Frames", false, function(bool)
     local rSto = game:GetService("ReplicatedStorage")
     for _, obj in pairs(rSto:GetChildren()) do
         if obj.Name:match("Frame$") then
@@ -501,66 +489,45 @@ CreateToggle:AddSwitch("Hide Karma Frames", function(bool)
     end
 end)
 
-local Lighting = game:GetService("Lighting")
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
-local original = {
-    Brightness = Lighting.Brightness,
-    ClockTime = Lighting.ClockTime,
-    OutdoorAmbient = Lighting.OutdoorAmbient,
-    Ambient = Lighting.Ambient,
-    FogColor = Lighting.FogColor,
-    FogEnd = Lighting.FogEnd
-}
-
-local enabled = false
-
-local function enableOptimization()
-    -- clear sky
-    for _, v in pairs(Lighting:GetChildren()) do
-        if v:IsA("Sky") then
-            v:Destroy()
-        end
-    end
-
-    local darkSky = Instance.new("Sky")
-    darkSky.Name = "DarkSky"
-    darkSky.SkyboxBk = "rbxassetid://0"
-    darkSky.SkyboxDn = "rbxassetid://0"
-    darkSky.SkyboxFt = "rbxassetid://0"
-    darkSky.SkyboxLf = "rbxassetid://0"
-    darkSky.SkyboxRt = "rbxassetid://0"
-    darkSky.SkyboxUp = "rbxassetid://0"
-    darkSky.Parent = Lighting
-
-    Lighting.Brightness = 0
-    Lighting.ClockTime = 0
-    Lighting.OutdoorAmbient = Color3.new(0,0,0)
-    Lighting.Ambient = Color3.new(0,0,0)
-    Lighting.FogColor = Color3.new(0,0,0)
-    Lighting.FogEnd = 0
-end
-
-local function disableOptimization()
-    -- restore lighting
-    for k, v in pairs(original) do
-        Lighting[k] = v
-    end
-
-    local sky = Lighting:FindFirstChild("DarkSky")
-    if sky then
-        sky:Destroy()
-    end
-end
-
-CreateToggle:AddSwitch("Anti Lag", function(state)
-    enabled = state
+-- Anti Lag
+CreateToggle("Anti Lag", false, function(state)
+    local Lighting = game:GetService("Lighting")
+    local original = {
+        Brightness = Lighting.Brightness,
+        ClockTime = Lighting.ClockTime,
+        OutdoorAmbient = Lighting.OutdoorAmbient,
+        Ambient = Lighting.Ambient,
+        FogColor = Lighting.FogColor,
+        FogEnd = Lighting.FogEnd
+    }
 
     if state then
-        enableOptimization()
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Sky") then v:Destroy() end
+        end
+
+        local darkSky = Instance.new("Sky")
+        darkSky.Name = "DarkSky"
+        darkSky.SkyboxBk = "rbxassetid://0"
+        darkSky.SkyboxDn = "rbxassetid://0"
+        darkSky.SkyboxFt = "rbxassetid://0"
+        darkSky.SkyboxLf = "rbxassetid://0"
+        darkSky.SkyboxRt = "rbxassetid://0"
+        darkSky.SkyboxUp = "rbxassetid://0"
+        darkSky.Parent = Lighting
+
+        Lighting.Brightness = 0
+        Lighting.ClockTime = 0
+        Lighting.OutdoorAmbient = Color3.new(0,0,0)
+        Lighting.Ambient = Color3.new(0,0,0)
+        Lighting.FogColor = Color3.new(0,0,0)
+        Lighting.FogEnd = 0
     else
-        disableOptimization()
+        for k, v in pairs(original) do
+            Lighting[k] = v
+        end
+        local sky = Lighting:FindFirstChild("DarkSky")
+        if sky then sky:Destroy() end
     end
 end)
 
