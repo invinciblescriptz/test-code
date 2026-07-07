@@ -1,1 +1,351 @@
+local VoidUI = {} 
+local TweenService = game:GetService("TweenService") 
+local Players = game:GetService("Players") 
+local UserInputService = game:GetService("UserInputService") 
+local ReplicatedStorage = game:GetService("ReplicatedStorage") 
+local RunService = game:GetService("RunService") 
+local TeleportService = game:GetService("TeleportService") 
+local LocalPlayer = Players.LocalPlayer 
 
+local THEME = { 
+    Background = Color3.fromRGB(8, 8, 8), 
+    Surface = Color3.fromRGB(15, 15, 15), 
+    Surface2 = Color3.fromRGB(25, 25, 25), 
+    Accent = Color3.fromRGB(0, 255, 100), 
+    Text = Color3.fromRGB(255, 255, 255), 
+} 
+
+-- Variables
+local autoFarm = false
+local autoWorkout = false
+local autoRebirth = false
+local autoSell = false
+local autoBuyUpgrades = false
+local walkspeedEnabled = false
+local targetWalkSpeed = 120
+local jumpPowerEnabled = false
+local targetJumpPower = 250
+local antiAFK = false
+local workoutMultiplier = 1
+
+local connections = {}
+
+-- ==================== YOUR ORIGINAL UI CODE ====================
+
+local screen = Instance.new("ScreenGui")
+screen.Name = "VoidUI"
+screen.ResetOnSpawn = false
+screen.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local window = Instance.new("Frame")
+window.Name = "Killer"
+window.Size = UDim2.new(0, 440, 0, 580)
+window.Position = UDim2.new(0.5, -220, 0.5, -290)
+window.BackgroundColor3 = THEME.Background
+window.BorderSizePixel = 0
+window.Parent = screen
+Instance.new("UICorner", window).CornerRadius = UDim.new(0, 16)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(40, 40, 40)
+stroke.Thickness = 1.5
+stroke.Parent = window
+
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 60)
+titleBar.BackgroundColor3 = THEME.Surface
+titleBar.BorderSizePixel = 0
+titleBar.Parent = window
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 16)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -100, 1, 0)
+title.Position = UDim2.new(0, 20, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Void Strongman Simulator"
+title.TextColor3 = THEME.Accent
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = titleBar
+
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 40, 0, 40)
+minimizeBtn.Position = UDim2.new(1, -50, 0.5, -20)
+minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.Text = "−"
+minimizeBtn.TextColor3 = THEME.Text
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextSize = 28
+minimizeBtn.Parent = titleBar
+local minimizeCorner = Instance.new("UICorner")
+minimizeCorner.CornerRadius = UDim.new(0, 8)
+minimizeCorner.Parent = minimizeBtn
+
+-- DRAG FUNCTIONALITY
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = window.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input == dragInput) then
+        updateInput(input)
+    end
+end)
+
+local scrolling = Instance.new("ScrollingFrame")
+scrolling.Size = UDim2.new(1, -30, 1, -80)
+scrolling.Position = UDim2.new(0, 15, 0, 70)
+scrolling.BackgroundTransparency = 1
+scrolling.ScrollBarThickness = 6
+scrolling.ScrollBarImageColor3 = THEME.Accent
+scrolling.Parent = window
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 12)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = scrolling
+
+-- MINIMIZE FUNCTION
+local isMinimized = false
+local originalSize = UDim2.new(0, 440, 0, 580)
+local minimizedSize = UDim2.new(0, 440, 0, 60)
+
+local function toggleMinimize()
+    isMinimized = not isMinimized
+    if isMinimized then
+        minimizeBtn.Text = "+"
+        TweenService:Create(window, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {Size = minimizedSize}):Play()
+        scrolling.Visible = false
+    else
+        minimizeBtn.Text = "−"
+        TweenService:Create(window, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {Size = originalSize}):Play()
+        task.wait(0.15)
+        scrolling.Visible = true
+    end
+end
+minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
+
+-- UI FUNCTIONS
+local function CreateButton(parent, text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 55)
+    btn.BackgroundColor3 = THEME.Surface2
+    btn.Text = text
+    btn.TextColor3 = THEME.Text
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 17
+    btn.Parent = parent or scrolling
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+    local s = Instance.new("UIStroke")
+    s.Color = THEME.Accent
+    s.Transparency = 0.65
+    s.Parent = btn
+    btn.MouseButton1Click:Connect(function()
+        callback()
+        TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = THEME.Accent}):Play()
+        task.wait(0.12)
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = THEME.Surface2}):Play()
+    end)
+end
+
+local function CreateToggle(text, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 55)
+    frame.BackgroundTransparency = 1
+    frame.Parent = scrolling
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.65, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = THEME.Text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 17
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 65, 0, 34)
+    toggle.Position = UDim2.new(1, -75, 0.5, -17)
+    toggle.BackgroundColor3 = default and THEME.Accent or THEME.Surface2
+    toggle.Text = ""
+    toggle.Parent = frame
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
+
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 27, 0, 27)
+    knob.Position = default and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)
+    knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    knob.Parent = toggle
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    local state = default
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        TweenService:Create(toggle, TweenInfo.new(0.25), {BackgroundColor3 = state and THEME.Accent or THEME.Surface2}):Play()
+        TweenService:Create(knob, TweenInfo.new(0.25), {Position = state and UDim2.new(1, -32, 0.5, -13.5) or UDim2.new(0, 3.5, 0.5, -13.5)}):Play()
+        callback(state)
+    end)
+end
+
+local function CreateLabel(text)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 40)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = THEME.Text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 18
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = scrolling
+    return label
+end
+
+-- ==================== STRONGMAN FEATURES ====================
+
+local function getCharacter()
+    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
+
+CreateLabel("=== AUTO FARMING ===")
+
+CreateToggle("Auto Farm Energy", false, function(state)
+    autoFarm = state
+    if state then
+        connections.farm = RunService.Heartbeat:Connect(function()
+            if not autoFarm then return end
+            local char = getCharacter()
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            
+            for _, obj in ipairs(Workspace:GetDescendants()) do
+                if obj:IsA("ProximityPrompt") then
+                    local part = obj.Parent
+                    if part and (part.Name:lower():find("weight") or part.Name:lower():find("barbell")) then
+                        if (part.Position - root.Position).Magnitude < 30 then
+                            fireproximityprompt(obj)
+                            task.wait(0.35)
+                            break
+                        end
+                    end
+                end
+            end
+        end)
+    elseif connections.farm then
+        connections.farm:Disconnect()
+    end
+end)
+
+CreateToggle("Auto Workout", false, function(state)
+    autoWorkout = state
+    if state then
+        connections.workout = RunService.Heartbeat:Connect(function()
+            if not autoWorkout then return end
+            local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
+            local workout = remotes:FindFirstChild("Workout") or remotes:FindFirstChild("Train") or remotes:FindFirstChild("Lift")
+            if workout then
+                pcall(function() workout:FireServer(workoutMultiplier) end)
+            end
+            task.wait(0.7)
+        end)
+    elseif connections.workout then
+        connections.workout:Disconnect()
+    end
+end)
+
+CreateToggle("Auto Rebirth", false, function(state)
+    autoRebirth = state
+    if state then
+        spawn(function()
+            while autoRebirth do task.wait(7)
+                local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
+                local rebirth = remotes:FindFirstChild("Rebirth") or remotes:FindFirstChild("Reborn")
+                if rebirth then pcall(function() rebirth:FireServer() end) end
+            end
+        end)
+    end
+end)
+
+CreateToggle("Auto Sell", false, function(state)
+    autoSell = state
+end)
+
+CreateToggle("Auto Buy Upgrades", false, function(state)
+    autoBuyUpgrades = state
+end)
+
+CreateLabel("=== MOVEMENT & UTILITY ===")
+
+CreateToggle("WalkSpeed", false, function(state)
+    walkspeedEnabled = state
+    if state then
+        connections.ws = RunService.RenderStepped:Connect(function()
+            local hum = getCharacter():FindFirstChild("Humanoid")
+            if hum then hum.WalkSpeed = targetWalkSpeed end
+        end)
+    elseif connections.ws then connections.ws:Disconnect() end
+end)
+
+CreateToggle("JumpPower", false, function(state)
+    jumpPowerEnabled = state
+    if state then
+        local hum = getCharacter():FindFirstChild("Humanoid")
+        if hum then hum.JumpPower = targetJumpPower end
+    end
+end)
+
+CreateToggle("Anti AFK", true, function(state)
+    antiAFK = state
+    if state then
+        connections.afk = LocalPlayer.Idled:Connect(function()
+            local vu = game:GetService("VirtualUser")
+            vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            task.wait(1)
+            vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        end)
+    elseif connections.afk then connections.afk:Disconnect() end
+end)
+
+CreateButton(nil, "Teleport to Best Area", function()
+    local char = getCharacter()
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if root then root.CFrame = CFrame.new(300, 50, -400) end -- Change coordinates if needed
+end)
+
+CreateButton(nil, "Claim All Codes", function()
+    print("Claiming codes... (customize with real codes)")
+end)
+
+-- Update Canvas Size
+scrolling.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 50)
+listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrolling.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 50)
+end)
+
+print("Void Strongman Simulator Loaded!")
