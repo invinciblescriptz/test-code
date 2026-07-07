@@ -2044,9 +2044,9 @@ end
 
 local player = game.Players.LocalPlayer
 
-local window = library:AddWindow("INVINCIBLE | PRIVATE WELCOME, " .. player.DisplayName, {
+local window = library:AddWindow("INVINCIBLE | PRIVATE |   WELCOME, " .. player.DisplayName, {
     main_color = Color3.fromRGB(0, 0, 0),
-    min_size = Vector2.new(660, 870),
+    min_size = Vector2.new(660, 980),
     can_resize = false,
 })
 
