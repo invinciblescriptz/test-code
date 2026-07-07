@@ -1,187 +1,344 @@
--- Anime Fighting Simulator: Endless - Full Auto Script by Grok
--- Features: Auto Train All Stats, Teleports, Auto Farm, Anti-AFK, ESP
+-- CoolUI Library for Roblox
+-- A modern, neon-styled UI library with smooth animations
+-- Usage: local CoolUI = require(path.to.this.module)
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
+local CoolUI = {}
+CoolUI.__index = CoolUI
+
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
-
--- Remotes (adjust if game updates)
-local Remotes = ReplicatedStorage:WaitForChild("Remotes", 5)
-local TrainRemote = Remotes and Remotes:FindFirstChild("RemoteEvent") or nil
-
--- Settings
-local autoTrainEnabled = {}
-local selectedStats = {"Strength", "Durability", "Chakra", "Sword", "Agility", "Speed"}
-local trainDelay = 0.1
-local antiAFK = true
-
--- Stat IDs
-local STAT_ID = {
-    Strength = 1, Durability = 2, Chakra = 3,
-    Sword = 4, Agility = 5, Speed = 6
+local THEME = {
+    Background = Color3.fromRGB(15, 15, 20),
+    Primary = Color3.fromRGB(0, 255, 200),      -- Neon Cyan
+    Secondary = Color3.fromRGB(255, 50, 150),   -- Neon Pink
+    Accent = Color3.fromRGB(100, 200, 255),
+    Text = Color3.fromRGB(240, 240, 250),
+    TextDim = Color3.fromRGB(180, 180, 200),
+    Stroke = Color3.fromRGB(0, 255, 200),
 }
 
--- Training Spots (common high-level areas)
-local TrainingSpots = {
-    Strength = {"Workspace.Map.TrainingAreas.Meteor", "Workspace.Map.TrainingAreas.Arena.Part"},
-    Durability = {"Workspace.Map.TrainingAreas.Pirate ship.Model", "Workspace.Map.TrainingAreas.BlackFire.Fire"},
-    Chakra = {"Workspace.Map.TrainingAreas.Tree1.ObjectRoot", "Workspace.Map.TrainingAreas.Fox.Fox"},
-    Agility = {"Workspace.Map.TrainingAreas.Trampoline.Bouncy"},
-    Speed = {"Workspace.Map.TrainingAreas.Treadmills"},
-    Sword = {"Workspace.Map.TrainingAreas.ExcaliburRocks.Model"}
-}
+local TWEEN_INFO = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local FAST_TWEEN = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
-local function getStatValue(statName)
-    local statsFolder = player:FindFirstChild("Stats")
-    if not statsFolder then return 0 end
-    local id = STAT_ID[statName]
-    local valObj = statsFolder:FindFirstChild(tostring(id))
-    return valObj and valObj.Value or 0
+-- Create base ScreenGui if needed
+function CoolUI:Init(parent)
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "CoolUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = parent or (game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+    self.ScreenGui = screenGui
+    return screenGui
 end
 
-local function teleportTo(partPath)
-    local target = Workspace
-    for _, folder in ipairs(partPath:split(".")) do
-        target = target:FindFirstChild(folder)
-        if not target then return false end
-    end
-    if target and target:IsA("BasePart") or target:FindFirstChildWhichIsA("BasePart") then
-        local part = target:IsA("BasePart") and target or target:FindFirstChildWhichIsA("BasePart")
-        hrp.CFrame = part.CFrame + Vector3.new(0, 5, 0)
-        return true
-    end
-    return false
-end
-
--- Auto Train Loop
-spawn(function()
-    while true do
-        if TrainRemote then
-            for statName, enabled in pairs(autoTrainEnabled) do
-                if enabled then
-                    local id = STAT_ID[statName]
-                    if id then
-                        TrainRemote:FireServer("Train", id)
-                    end
-                end
-            end
-        end
-        task.wait(trainDelay)
-    end
-end)
-
--- Anti-AFK
-if antiAFK then
-    spawn(function()
-        while true do
-            game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
-            game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
-            task.wait(60)
-        end
+-- Create a glowing frame
+function CoolUI:CreateWindow(title, size, position)
+    local window = Instance.new("Frame")
+    window.Name = "Window"
+    window.Size = size or UDim2.new(0, 400, 0, 300)
+    window.Position = position or UDim2.new(0.5, -200, 0.5, -150)
+    window.BackgroundColor3 = THEME.Background
+    window.BorderSizePixel = 0
+    window.Active = true
+    window.Draggable = true
+    window.Parent = self.ScreenGui or game.Players.LocalPlayer.PlayerGui:FindFirstChild("CoolUI")
+    
+    -- Glow effect using UIStroke + multiple layers
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = window
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = THEME.Stroke
+    stroke.Thickness = 2
+    stroke.Transparency = 0.3
+    stroke.Parent = window
+    
+    -- Inner glow
+    local innerStroke = Instance.new("UIStroke")
+    innerStroke.Color = THEME.Primary
+    innerStroke.Thickness = 1
+    innerStroke.Transparency = 0.7
+    innerStroke.Parent = window
+    
+    -- Title bar
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.BackgroundColor3 = THEME.Background
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = window
+    
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.Parent = titleBar
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -80, 1, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title or "CoolUI Window"
+    titleLabel.TextColor3 = THEME.Text
+    titleLabel.TextScaled = true
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.Parent = titleBar
+    
+    -- Close button
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -35, 0, 5)
+    closeBtn.BackgroundColor3 = THEME.Secondary
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = Color3.new(1,1,1)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextScaled = true
+    closeBtn.Parent = titleBar
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(1, 0)
+    closeCorner.Parent = closeBtn
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        window:TweenSize(UDim2.new(0,0,0,0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+        game:GetService("Debris"):AddItem(window, 0.4)
     end)
+    
+    -- Content frame
+    local content = Instance.new("Frame")
+    content.Name = "Content"
+    content.Size = UDim2.new(1, -20, 1, -60)
+    content.Position = UDim2.new(0, 10, 0, 50)
+    content.BackgroundTransparency = 1
+    content.Parent = window
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, 8)
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Parent = content
+    
+    window:SetAttribute("Content", content)
+    
+    return window
 end
 
--- Simple GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AFSE_GrokHub"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 350, 0, 500)
-MainFrame.Position = UDim2.new(0.5, -175, 0.5, -250)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = ScreenGui
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 50)
-Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Title.Text = "AFSE Grok Hub"
-Title.TextColor3 = Color3.new(1,1,1)
-Title.TextSize = 20
-Title.Parent = MainFrame
-
-local UIList = Instance.new("UIListLayout")
-UIList.Padding = UDim.new(0, 5)
-UIList.Parent = MainFrame
-
--- Stat Toggles
-for _, stat in ipairs(selectedStats) do
+-- Neon Button
+function CoolUI:CreateButton(parent, text, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 40)
-    btn.Position = UDim2.new(0, 10, 0, 0)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    btn.Text = "Auto " .. stat .. ": OFF"
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Parent = MainFrame
+    btn.Size = UDim2.new(1, 0, 0, 45)
+    btn.BackgroundColor3 = THEME.Primary
+    btn.Text = text or "Button"
+    btn.TextColor3 = Color3.new(0,0,0)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextScaled = true
+    btn.Parent = parent
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = btn
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.new(1,1,1)
+    stroke.Thickness = 2
+    stroke.Transparency = 0.6
+    stroke.Parent = btn
+    
+    -- Hover effect
+    local hoverTweenIn = TweenService:Create(btn, TWEEN_INFO, {BackgroundColor3 = THEME.Secondary})
+    local hoverTweenOut = TweenService:Create(btn, TWEEN_INFO, {BackgroundColor3 = THEME.Primary})
+    
+    btn.MouseEnter:Connect(function()
+        hoverTweenIn:Play()
+    end)
+    
+    btn.MouseLeave:Connect(function()
+        hoverTweenOut:Play()
+    end)
     
     btn.MouseButton1Click:Connect(function()
-        autoTrainEnabled[stat] = not autoTrainEnabled[stat]
-        btn.Text = "Auto " .. stat .. ": " .. (autoTrainEnabled[stat] and "ON" or "OFF")
-        btn.BackgroundColor3 = autoTrainEnabled[stat] and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(45, 45, 45)
+        if callback then callback() end
+        
+        -- Click animation
+        btn.Size = UDim2.new(1, -10, 0, 40)
+        TweenService:Create(btn, FAST_TWEEN, {Size = UDim2.new(1, 0, 0, 45)}):Play()
     end)
+    
+    return btn
 end
 
--- Teleport Buttons
-local tpLabel = Instance.new("TextLabel")
-tpLabel.Text = "Teleports"
-tpLabel.Size = UDim2.new(1, -20, 0, 30)
-tpLabel.BackgroundTransparency = 1
-tpLabel.TextColor3 = Color3.new(1,1,1)
-tpLabel.Parent = MainFrame
-
-for area, spots in pairs(TrainingSpots) do
-    local tpBtn = Instance.new("TextButton")
-    tpBtn.Size = UDim2.new(1, -20, 0, 35)
-    tpBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    tpBtn.Text = "TP to " .. area
-    tpBtn.TextColor3 = Color3.new(1,1,1)
-    tpBtn.Parent = MainFrame
-    tpBtn.MouseButton1Click:Connect(function()
-        if #spots > 0 then
-            teleportTo(spots[1])
+-- Toggle Switch
+function CoolUI:CreateToggle(parent, text, default, callback)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 0, 50)
+    container.BackgroundTransparency = 1
+    container.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.7, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text or "Toggle"
+    label.TextColor3 = THEME.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.Gotham
+    label.TextScaled = true
+    label.Parent = container
+    
+    local switch = Instance.new("Frame")
+    switch.Size = UDim2.new(0, 60, 0, 30)
+    switch.Position = UDim2.new(1, -70, 0.5, -15)
+    switch.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    switch.Parent = container
+    
+    local switchCorner = Instance.new("UICorner")
+    switchCorner.CornerRadius = UDim.new(1, 0)
+    switchCorner.Parent = switch
+    
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 26, 0, 26)
+    knob.Position = UDim2.new(0, 2, 0.5, -13)
+    knob.BackgroundColor3 = Color3.new(1,1,1)
+    knob.Parent = switch
+    
+    local knobCorner = Instance.new("UICorner")
+    knobCorner.CornerRadius = UDim.new(1, 0)
+    knobCorner.Parent = knob
+    
+    local state = default or false
+    
+    local function updateVisual()
+        if state then
+            TweenService:Create(switch, TWEEN_INFO, {BackgroundColor3 = THEME.Primary}):Play()
+            TweenService:Create(knob, TWEEN_INFO, {Position = UDim2.new(1, -28, 0.5, -13)}):Play()
+        else
+            TweenService:Create(switch, TWEEN_INFO, {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
+            TweenService:Create(knob, TWEEN_INFO, {Position = UDim2.new(0, 2, 0.5, -13)}):Play()
+        end
+    end
+    
+    updateVisual()
+    
+    switch.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            state = not state
+            updateVisual()
+            if callback then callback(state) end
         end
     end)
+    
+    return container
 end
 
--- Credits / Status
-local status = Instance.new("TextLabel")
-status.Size = UDim2.new(1, -20, 0, 60)
-status.Position = UDim2.new(0, 10, 1, -70)
-status.BackgroundTransparency = 1
-status.TextColor3 = Color3.fromRGB(100, 255, 100)
-status.Text = "Status: Running\nMade with ❤️ by Grok"
-status.TextSize = 14
-status.Parent = MainFrame
-
-print("✅ AFSE Grok Hub Loaded! Toggle stats and enjoy farming.")
-
--- Draggable GUI
-local dragging, dragInput, dragStart, startPos
-Title.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
+-- Slider
+function CoolUI:CreateSlider(parent, text, min, max, default, callback)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 0, 70)
+    container.BackgroundTransparency = 1
+    container.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = text or "Slider"
+    label.TextColor3 = THEME.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.Gotham
+    label.TextScaled = true
+    label.Parent = container
+    
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Size = UDim2.new(1, 0, 0, 20)
+    valueLabel.Position = UDim2.new(0, 0, 0, 20)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.TextColor3 = THEME.Accent
+    valueLabel.Font = Enum.Font.GothamBold
+    valueLabel.TextScaled = true
+    valueLabel.Parent = container
+    
+    local bar = Instance.new("Frame")
+    bar.Size = UDim2.new(1, 0, 0, 8)
+    bar.Position = UDim2.new(0, 0, 0, 48)
+    bar.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    bar.Parent = container
+    
+    local barCorner = Instance.new("UICorner")
+    barCorner.CornerRadius = UDim.new(1, 0)
+    barCorner.Parent = bar
+    
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(0.5, 0, 1, 0)
+    fill.BackgroundColor3 = THEME.Primary
+    fill.Parent = bar
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1, 0)
+    fillCorner.Parent = fill
+    
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 20, 0, 20)
+    knob.Position = UDim2.new(0.5, -10, 0.5, -10)
+    knob.BackgroundColor3 = THEME.Primary
+    knob.Parent = bar
+    
+    local knobCorner = Instance.new("UICorner")
+    knobCorner.CornerRadius = UDim.new(1, 0)
+    knobCorner.Parent = knob
+    
+    local value = default or min
+    local dragging = false
+    
+    local function updateSlider()
+        local percent = (value - min) / (max - min)
+        fill.Size = UDim2.new(percent, 0, 1, 0)
+        knob.Position = UDim2.new(percent, -10, 0.5, -10)
+        valueLabel.Text = string.format("%.1f", value)
+        if callback then callback(value) end
     end
+    
+    updateSlider()
+    
+    -- Drag functionality
+    knob.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mousePos = UserInputService:GetMouseLocation()
+            local barPos = bar.AbsolutePosition
+            local barSize = bar.AbsoluteSize.X
+            
+            local percent = math.clamp((mousePos.X - barPos.X) / barSize, 0, 1)
+            value = min + (max - min) * percent
+            updateSlider()
+        end
+    end)
+    
+    return container
+end
+
+-- Example usage (remove or comment out in production)
+--[[
+local screen = CoolUI:Init()
+
+local win = CoolUI:CreateWindow("Neon Dashboard", UDim2.new(0, 420, 0, 380))
+
+CoolUI:CreateButton(win.Content, "Click Me!", function()
+    print("Button clicked!")
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
+CoolUI:CreateToggle(win.Content, "Enable Effects", true, function(state)
+    print("Toggle:", state)
 end)
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
+CoolUI:CreateSlider(win.Content, "Volume", 0, 100, 50, function(val)
+    print("Volume:", val)
 end)
+--]]
+
+return CoolUI
