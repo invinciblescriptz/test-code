@@ -1,13 +1,7 @@
--- =============================================
--- Roblox Username Whitelist (Server Script)
--- Place this in ServerScriptService
--- =============================================
-
 local WHITELISTED_USERNAMES = {
-    "YourUsernameHere",     -- ← CHANGE THIS TO YOUR USERNAME
-    -- Add more usernames below:
-    -- "Friend1",
-    -- "Friend2",
+    "krxzy_214",
+    "xog_beastx",
+    "Hebdjhxc",
 }
 
 local KICK_REASON = "L skid."
@@ -15,12 +9,11 @@ local KICK_REASON = "L skid."
 local Players = game:GetService("Players")
 
 local function isWhitelisted(player)
-    if not player or not player.Name then return false end
-    
-    local playerName = player.Name:lower()
-    
-    for _, name in ipairs(WHITELISTED_USERNAMES) do
-        if name:lower() == playerName then
+    if not player then return false end
+    local name = player.Name:lower()
+   
+    for _, whitelisted in ipairs(WHITELISTED_USERNAMES) do
+        if whitelisted:lower() == name then
             return true
         end
     end
@@ -28,14 +21,12 @@ local function isWhitelisted(player)
 end
 
 Players.PlayerAdded:Connect(function(player)
-    task.wait(0.3) -- Small delay for better reliability
-    
+    task.wait(0.4)
+   
     if not isWhitelisted(player) then
-        warn("[WHITELIST] " .. player.Name .. " L skid.")
+        warn("[WHITELIST] Kicked " .. player.Name .. " - Not whitelisted")
         player:Kick(KICK_REASON)
     else
-        print("[WHITELIST] " .. player.Name .. " successfully joined (whitelisted)")
+        print("[WHITELIST] " .. player.Name .. " is whitelisted ✓")
     end
 end)
-
-print("✅ Username Whitelist System Loaded | " .. #WHITELISTED_USERNAMES .. " user(s) whitelisted")
