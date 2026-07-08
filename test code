@@ -1,19 +1,20 @@
-local WHITELISTED_USERNAMES = {
-    "krxzy_214",
-    "xog_beastx",
-    "Hebdjhxc",
+-- Whitelist Script for Roblox (ServerScript - Put in ServerScriptService)
+-- Kicks non-whitelisted players with "L skid"
+
+local WHITELISTED_IDS = {
+    123456789,  -- Replace with your UserId
+    -- Add more UserIds here, example:
+    -- 987654321,
+    -- 111222333,
 }
 
-local KICK_REASON = "L skid."
+local KICK_MESSAGE = "L skid"
 
 local Players = game:GetService("Players")
 
-local function isWhitelisted(player)
-    if not player then return false end
-    local name = player.Name:lower()
-   
-    for _, whitelisted in ipairs(WHITELISTED_USERNAMES) do
-        if whitelisted:lower() == name then
+local function isWhitelisted(userId)
+    for _, id in ipairs(WHITELISTED_IDS) do
+        if id == userId then
             return true
         end
     end
@@ -21,12 +22,13 @@ local function isWhitelisted(player)
 end
 
 Players.PlayerAdded:Connect(function(player)
-    task.wait(0.4)
-   
-    if not isWhitelisted(player) then
-        warn("[WHITELIST] Kicked " .. player.Name .. " - Not whitelisted")
-        player:Kick(KICK_REASON)
+    if not isWhitelisted(player.UserId) then
+        wait(1) -- Small delay to let the player load a bit
+        player:Kick(KICK_MESSAGE)
+        print("Kicked non-whitelisted player: " .. player.Name .. " (" .. player.UserId .. ")")
     else
-        print("[WHITELIST] " .. player.Name .. " is whitelisted ✓")
+        print("Whitelisted player joined: " .. player.Name)
     end
 end)
+
+print("Whitelist script loaded. " .. #WHITELISTED_IDS .. " players whitelisted.")
