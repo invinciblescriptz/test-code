@@ -1,7 +1,13 @@
+-- =============================================
+-- Roblox Username Whitelist (Server Script)
+-- Place this in ServerScriptService
+-- =============================================
+
 local WHITELISTED_USERNAMES = {
-    "CoolBuilder123",
-    "MyBestFriend45",
-    "ProGamerX"
+    "YourUsernameHere",     -- ← CHANGE THIS TO YOUR USERNAME
+    -- Add more usernames below:
+    -- "Friend1",
+    -- "Friend2",
 }
 
 local KICK_REASON = "You are not whitelisted on this game."
@@ -9,10 +15,12 @@ local KICK_REASON = "You are not whitelisted on this game."
 local Players = game:GetService("Players")
 
 local function isWhitelisted(player)
+    if not player or not player.Name then return false end
+    
     local playerName = player.Name:lower()
     
-    for _, whitelistedName in ipairs(WHITELISTED_USERNAMES) do
-        if whitelistedName:lower() == playerName then
+    for _, name in ipairs(WHITELISTED_USERNAMES) do
+        if name:lower() == playerName then
             return true
         end
     end
@@ -20,16 +28,14 @@ local function isWhitelisted(player)
 end
 
 Players.PlayerAdded:Connect(function(player)
+    task.wait(0.3) -- Small delay for better reliability
+    
     if not isWhitelisted(player) then
-        warn(player.Name .. " attempted to join but is not whitelisted.")
-        
-        -- Small delay so the kick message shows properly
-        task.wait(0.5)
-        
+        warn("[WHITELIST] " .. player.Name .. " is not whitelisted. Kicking...")
         player:Kick(KICK_REASON)
     else
-        print(player.Name .. " is whitelisted and joined successfully.")
+        print("[WHITELIST] " .. player.Name .. " successfully joined (whitelisted)")
     end
 end)
 
-print("✅ Username Whitelist system loaded. " .. #WHITELISTED_USERNAMES .. " users whitelisted.")
+print("✅ Username Whitelist System Loaded | " .. #WHITELISTED_USERNAMES .. " user(s) whitelisted")
