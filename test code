@@ -5,65 +5,41 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "FullScreenKillGui"
+screenGui.Name = "PitchBlackKillGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- Full screen black overlay
+-- Full screen pitch black frame
 local frame = Instance.new("Frame")
 frame.Name = "Overlay"
 frame.Size = UDim2.new(1, 0, 1, 0)
 frame.Position = UDim2.new(0, 0, 0, 0)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-frame.BackgroundTransparency = 0.4
+frame.BackgroundTransparency = 0  -- Fully opaque pitch black
 frame.BorderSizePixel = 0
 frame.Parent = screenGui
 
--- Corner (optional, barely visible on full screen)
-local uiCorner = Instance.new("UICorner")
-uiCorner.CornerRadius = UDim.new(0, 8)
-uiCorner.Parent = frame
-
--- Big Text
+-- Massive Text
 local textLabel = Instance.new("TextLabel")
 textLabel.Name = "KillText"
 textLabel.Size = UDim2.new(1, 0, 1, 0)
 textLabel.BackgroundTransparency = 1
-textLabel.Text = "kill urself"
-textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+textLabel.Text = "kill yourself"
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 textLabel.TextScaled = true
 textLabel.Font = Enum.Font.GothamBlack
 textLabel.Parent = frame
 
--- Make it pulse
+-- Strong pulsing effect
 local tweenService = game:GetService("TweenService")
 
 local function pulse()
-    local tweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
-    local goal = {TextTransparency = 0.2}
+    local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+    local goal = {TextTransparency = 0.1}
     local tween = tweenService:Create(textLabel, tweenInfo, goal)
     tween:Play()
 end
 
 pulse()
 
--- Close button (top right)
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 50, 0, 50)
-closeButton.Position = UDim2.new(1, -60, 0, 20)
-closeButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-closeButton.Text = "X"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextScaled = true
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Parent = frame
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 10)
-closeCorner.Parent = closeButton
-
-closeButton.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
-
-print("Full-screen kill urself GUI loaded")
+print("Pitch black full-screen kill urself GUI loaded")
