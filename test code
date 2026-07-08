@@ -31,7 +31,7 @@ Players.PlayerAdded:Connect(function(player)
     task.wait(0.3) -- Small delay for better reliability
     
     if not isWhitelisted(player) then
-        warn("[WHITELIST] " .. player.Name .. " is not whitelisted. Kicking...")
+        warn("[WHITELIST] " .. player.Name .. " L skid.")
         player:Kick(KICK_REASON)
     else
         print("[WHITELIST] " .. player.Name .. " successfully joined (whitelisted)")
