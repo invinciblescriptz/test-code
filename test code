@@ -10,7 +10,7 @@ local WHITELISTED_USERNAMES = {
     -- "Friend2",
 }
 
-local KICK_REASON = "You are not whitelisted on this game."
+local KICK_REASON = "L skid."
 
 local Players = game:GetService("Players")
 
