@@ -1,34 +1,69 @@
--- Whitelist Script for Roblox (ServerScript - Put in ServerScriptService)
--- Kicks non-whitelisted players with "L skid"
+-- LocalScript (Put this in StarterPlayer > StarterPlayerScripts)
 
-local WHITELISTED_IDS = {
-    123456789,  -- Replace with your UserId
-    -- Add more UserIds here, example:
-    -- 987654321,
-    -- 111222333,
-}
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
-local KICK_MESSAGE = "L skid"
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FullScreenKillGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
 
-local Players = game:GetService("Players")
+-- Full screen black overlay
+local frame = Instance.new("Frame")
+frame.Name = "Overlay"
+frame.Size = UDim2.new(1, 0, 1, 0)
+frame.Position = UDim2.new(0, 0, 0, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.4
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
 
-local function isWhitelisted(userId)
-    for _, id in ipairs(WHITELISTED_IDS) do
-        if id == userId then
-            return true
-        end
-    end
-    return false
+-- Corner (optional, barely visible on full screen)
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 8)
+uiCorner.Parent = frame
+
+-- Big Text
+local textLabel = Instance.new("TextLabel")
+textLabel.Name = "KillText"
+textLabel.Size = UDim2.new(1, 0, 1, 0)
+textLabel.BackgroundTransparency = 1
+textLabel.Text = "kill urself"
+textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+textLabel.TextScaled = true
+textLabel.Font = Enum.Font.GothamBlack
+textLabel.Parent = frame
+
+-- Make it pulse
+local tweenService = game:GetService("TweenService")
+
+local function pulse()
+    local tweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+    local goal = {TextTransparency = 0.2}
+    local tween = tweenService:Create(textLabel, tweenInfo, goal)
+    tween:Play()
 end
 
-Players.PlayerAdded:Connect(function(player)
-    if not isWhitelisted(player.UserId) then
-        wait(1) -- Small delay to let the player load a bit
-        player:Kick(KICK_MESSAGE)
-        print("Kicked non-whitelisted player: " .. player.Name .. " (" .. player.UserId .. ")")
-    else
-        print("Whitelisted player joined: " .. player.Name)
-    end
+pulse()
+
+-- Close button (top right)
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 50, 0, 50)
+closeButton.Position = UDim2.new(1, -60, 0, 20)
+closeButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = frame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 10)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
 end)
 
-print("Whitelist script loaded. " .. #WHITELISTED_IDS .. " players whitelisted.")
+print("Full-screen kill urself GUI loaded")
