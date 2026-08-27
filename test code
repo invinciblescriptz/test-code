@@ -117,6 +117,10 @@ Window.ImageColor3 = Color3.new(0.0823529, 0.0862745, 0.0901961)
 Window.ImageTransparency = 0.3
 Window.ScaleType = Enum.ScaleType.Stretch
 
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 15)
+Corner.Parent = Window
+
 Resizer.Name = "Resizer"
 Resizer.Parent = Window
 Resizer.Active = true
@@ -197,7 +201,6 @@ TabSelection.ScaleType = Enum.ScaleType.Slice
 TabSelection.SliceCenter = Rect.new(4, 4, 4, 4)
 TabSelection.ClipsDescendants = true
 
--- Scrollable tab buttons (horizontal)
 TabButtons.Name = "TabButtons"
 TabButtons.Parent = TabSelection
 TabButtons.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -762,7 +765,7 @@ DropdownButton.BackgroundColor3 = Color3.new(0.129412, 0.133333, 0.141176)
 DropdownButton.BorderSizePixel = 0
 DropdownButton.Size = UDim2.new(1, 0, 0, 20)
 DropdownButton.ZIndex = 3
-DropdownButton.Font = Enum.Font.Garamond
+DropdownButton.Font = Enum.Font.PermanentMarker
 DropdownButton.Text = "      Button"
 DropdownButton.TextColor3 = Color3.new(0.784314, 0.784314, 0.784314)
 DropdownButton.TextSize = 17
@@ -783,7 +786,7 @@ Title_4.Parent = Keybind
 Title_4.BackgroundColor3 = Color3.new(1, 1, 1)
 Title_4.BackgroundTransparency = 1
 Title_4.Size = UDim2.new(0, 0, 1, 0)
-Title_4.Font = Enum.Font.Garamond
+Title_4.Font = Enum.Font.PermanentMarker
 Title_4.Text = "Keybind"
 Title_4.TextColor3 = Color3.new(0.784314, 0.784314, 0.784314)
 Title_4.TextSize = 17
@@ -797,7 +800,7 @@ Input.BorderSizePixel = 0
 Input.Position = UDim2.new(1, -85, 0, 2)
 Input.Size = UDim2.new(0, 80, 1, -4)
 Input.ZIndex = 2
-Input.Font = Enum.Font.Garamond
+Input.Font = Enum.Font.PermanentMarker
 Input.Text = "RShift"
 Input.TextColor3 = Color3.new(0.784314, 0.784314, 0.784314)
 Input.TextSize = 15
