@@ -22,7 +22,7 @@ local Top = Instance.new("ImageLabel")
 local Tabs = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
 local TabSelection = Instance.new("ImageLabel")
-local TabButtons = Instance.new("Frame")
+local TabButtons = Instance.new("ScrollingFrame")
 local UIListLayout = Instance.new("UIListLayout")
 local Frame = Instance.new("Frame")
 local Tab = Instance.new("Frame")
@@ -91,7 +91,6 @@ Prefabs.Parent = imgui
 Prefabs.BackgroundColor3 = Color3.new(1, 1, 1)
 Prefabs.Size = UDim2.new(0, 100, 0, 100)
 Prefabs.Visible = false
-
 
 Label.Name = "Label"
 Label.Parent = Prefabs
@@ -196,12 +195,21 @@ TabSelection.Image = "rbxassetid://2851929490"
 TabSelection.ImageColor3 = Color3.new(0.145098, 0.14902, 0.156863)
 TabSelection.ScaleType = Enum.ScaleType.Slice
 TabSelection.SliceCenter = Rect.new(4, 4, 4, 4)
+TabSelection.ClipsDescendants = true
 
+-- Scrollable tab buttons (horizontal)
 TabButtons.Name = "TabButtons"
 TabButtons.Parent = TabSelection
 TabButtons.BackgroundColor3 = Color3.new(1, 1, 1)
 TabButtons.BackgroundTransparency = 1
+TabButtons.BorderSizePixel = 0
 TabButtons.Size = UDim2.new(1, 0, 1, 0)
+TabButtons.CanvasSize = UDim2.new(0, 0, 0, 0)
+TabButtons.ScrollBarThickness = 3
+TabButtons.ScrollingDirection = Enum.ScrollingDirection.X
+TabButtons.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 90)
+TabButtons.ElasticBehavior = Enum.ElasticBehavior.Never
+TabButtons.AutomaticCanvasSize = Enum.AutomaticSize.X
 
 UIListLayout.Parent = TabButtons
 UIListLayout.FillDirection = Enum.FillDirection.Horizontal
@@ -1095,6 +1103,17 @@ function library:AddWindow(title, options)
 		local tab_selection = Window:FindFirstChild("TabSelection")
 		local tab_buttons = tab_selection:FindFirstChild("TabButtons")
 
+		-- helper to keep horizontal canvas size correct (fallback if AutomaticCanvasSize is unavailable)
+		local function updateTabCanvas()
+			local total = 0
+			for _, child in ipairs(tab_buttons:GetChildren()) do
+				if child:IsA("GuiObject") and not child:IsA("UIListLayout") then
+					total = total + child.AbsoluteSize.X + 2 -- padding
+				end
+			end
+			tab_buttons.CanvasSize = UDim2.new(0, math.max(total, tab_buttons.AbsoluteSize.X), 0, 0)
+		end
+
 		do -- Add Tab
 			function window_data:AddTab(tab_name)
 				local tab_data = {}
@@ -1112,11 +1131,17 @@ function library:AddWindow(title, options)
 				new_tab.Parent = tabs
 				new_tab.ZIndex = new_tab.ZIndex + (windows * 10)
 
+				-- update scrollable canvas after layout
+				task.defer(updateTabCanvas)
+
 				local function show()
 					if dropdown_open then return end
 					for i, v in next, tab_buttons:GetChildren() do
-						if not (v:IsA("UIListLayout")) then
-							v:GetChildren()[1].ImageColor3 = Color3.fromRGB(52, 53, 56)
+						if not (v:IsA("UIListLayout")) and v:IsA("GuiObject") then
+							local round = v:FindFirstChild("TextButton_Roundify_4px")
+							if round then
+								round.ImageColor3 = Color3.fromRGB(52, 53, 56)
+							end
 							Resize(v, {Size = UDim2.new(0, v.AbsoluteSize.X, 0, 20)}, options.tween_time)
 						end
 					end
@@ -1125,8 +1150,12 @@ function library:AddWindow(title, options)
 					end
 
 					Resize(new_button, {Size = UDim2.new(0, new_button.AbsoluteSize.X, 0, 25)}, options.tween_time)
-					new_button:GetChildren()[1].ImageColor3 = Color3.fromRGB(73, 75, 79)
+					local round = new_button:FindFirstChild("TextButton_Roundify_4px")
+					if round then
+						round.ImageColor3 = Color3.fromRGB(73, 75, 79)
+					end
 					new_tab.Visible = true
+					task.defer(updateTabCanvas)
 				end
 
 				new_button.MouseButton1Click:Connect(function()
