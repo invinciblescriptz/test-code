@@ -113,7 +113,7 @@ Window.Position = UDim2.new(0, 20, 0, 20)
 Window.Selectable = true
 Window.Size = UDim2.new(0, 200, 0, 200)
 Window.Image = "rbxassetid://75793804195252"
-Window.ImageColor3 = Color3.new(0.0823529, 0.0862745, 0.0901961)
+Window.ImageColor3 = Color3.new(0.08, 0.08, 0.08)
 Window.ImageTransparency = 0.3
 Window.ScaleType = Enum.ScaleType.Stretch
 
@@ -150,11 +150,13 @@ Toggle.Image = "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&as
 Base.Name = "Base"
 Base.Parent = Bar
 Base.BackgroundColor3 = Color3.new(0.160784, 0.290196, 0.478431)
+Base.BackgroundTransparency = 0.4
 Base.BorderSizePixel = 0
 Base.Position = UDim2.new(0, 0, 0.800000012, 0)
 Base.Size = UDim2.new(1, 0, 0, 10)
 Base.Image = "rbxassetid://2851926732"
 Base.ImageColor3 = Color3.new(0.160784, 0.290196, 0.478431)
+Base.ImageTransparency = 0.4
 Base.ScaleType = Enum.ScaleType.Slice
 Base.SliceCenter = Rect.new(12, 12, 12, 12)
 
