@@ -92,7 +92,6 @@ Prefabs.BackgroundColor3 = Color3.new(1, 1, 1)
 Prefabs.Size = UDim2.new(0, 100, 0, 100)
 Prefabs.Visible = false
 
-
 Label.Name = "Label"
 Label.Parent = Prefabs
 Label.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -298,7 +297,7 @@ TextLabel.BackgroundColor3 = Color3.new(1, 1, 1)
 TextLabel.BackgroundTransparency = 1
 TextLabel.Position = UDim2.new(1, -20, -0.75, 0)
 TextLabel.Size = UDim2.new(0, 26, 0, 50)
-TextLabel.Font = EEnum.Font.GothamBlack
+TextLabel.Font = Enum.Font.GothamBlack
 TextLabel.Text = "]"
 TextLabel.TextColor3 = Color3.new(0.627451, 0.627451, 0.627451)
 TextLabel.TextSize = 17
@@ -1335,14 +1334,17 @@ function library:AddWindow(title, options)
 
 							function slider_data:Set(new_value)
 								new_value = tonumber(new_value) or 0
-								new_value = (((new_value >= 0 and new_value <= 100) and new_value) / 100)
-
-								Resize(indicator, {Size = UDim2.new(new_value or 0, 0, 0, 20)}, options.tween_time)
-								local p = math.floor((new_value or 0) * 100)
-
 								local maxv = slider_options.max
 								local minv = slider_options.min
 								local diff = maxv - minv
+								if diff == 0 then
+									new_value = 0
+								else
+									new_value = math.clamp((new_value - minv) / diff, 0, 1)
+								end
+
+								Resize(indicator, {Size = UDim2.new(new_value or 0, 0, 0, 20)}, options.tween_time)
+								local p = math.floor((new_value or 0) * 100)
 
 								local sel_value = math.floor(((diff / 100) * p) + minv)
 
@@ -1387,12 +1389,12 @@ function library:AddWindow(title, options)
 							MouseButton2 = "Mouse2"
 						}
 
-						local keybind = keybind_options.standard
+						local current_key = keybind_options.standard
 
 						function keybind_data:SetKeybind(Keybind)
 							local key = shortkeys[Keybind.Name] or Keybind.Name
 							input.Text = key
-							keybind = Keybind
+							current_key = Keybind
 						end
 
 						UIS.InputBegan:Connect(function(a, b)
@@ -1403,8 +1405,8 @@ function library:AddWindow(title, options)
 								end)
 								return
 							end
-							if a.KeyCode == keybind and not b then
-								pcall(callback, keybind)
+							if a.KeyCode == current_key and not b then
+								pcall(callback, current_key)
 							end
 						end)
 
@@ -1579,9 +1581,8 @@ function library:AddWindow(title, options)
 											local x = ((palette.AbsoluteSize.X - (mouse_location.X - palette.AbsolutePosition.X)) + 1)
 											local y = ((palette.AbsoluteSize.Y - (mouse_location.Y - palette.AbsolutePosition.Y)) + 1.5)
 
-											local color = Color3.fromHSV(x / 100, y / 100, 0)
-											h = x / 100
-											s = y / 100
+											h = math.clamp(x / 100, 0, 1)
+											s = math.clamp(y / 100, 0, 1)
 
 											Resize(palette_indicator, {Position = UDim2.new(0, math.abs(x - 100) - (palette_indicator.AbsoluteSize.X / 2), 0, math.abs(y - 100) - (palette_indicator.AbsoluteSize.Y / 2))}, options.tween_time)
 
@@ -1592,7 +1593,7 @@ function library:AddWindow(title, options)
 										while Held and Entered2 and (not dropdown_open) do -- Saturation
 											local mouse_location = gMouse()
 											local y = ((palette.AbsoluteSize.Y - (mouse_location.Y - palette.AbsolutePosition.Y)) + 1.5)
-											v = y / 100
+											v = math.clamp(y / 100, 0, 1)
 
 											Resize(saturation_indicator, {Position = UDim2.new(0, 0, 0, math.abs(y - 100))}, options.tween_time)
 
@@ -1611,6 +1612,7 @@ function library:AddWindow(title, options)
 							function color_picker_data:Set(color)
 								color = typeof(color) == "Color3" and color or Color3.new(1, 1, 1)
 								local h2, s2, v2 = rgbtohsv(color.r * 255, color.g * 255, color.b * 255)
+								h, s, v = h2, s2, v2
 								sample.ImageColor3 = color
 								saturation.ImageColor3 = Color3.fromHSV(h2, 1, 1)
 								pcall(callback, color)
@@ -1771,8 +1773,8 @@ function library:AddWindow(title, options)
 									elseif quote == true and c == "]" then
 										quote = false
 									end
-									if quote == false and c == "\]" then
-										highlight = highlight .. "\]"
+									if quote == false and c == "]" then
+										highlight = highlight .. "]"
 									elseif c == "\n" then
 										highlight = highlight .. "\n"
 									elseif c == "\t" then
@@ -1852,9 +1854,9 @@ function library:AddWindow(title, options)
 
 									sf.CanvasSize = UDim2.new(0, 0, lin * 0.153846154, 0)
 								end
+							end
 
-								local highlight_logs = function(type)
-								end
+							local highlight_logs = function(type)
 								if type == "Text" then
 									Source.Text = Source.Text:gsub("\13", "")
 									Source.Text = Source.Text:gsub("\t", "      ")
